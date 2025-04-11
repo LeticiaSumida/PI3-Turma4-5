@@ -120,11 +120,6 @@ class SignInActivity : ComponentActivity() {
         }
     }
 
-    @Preview
-    @Composable
-    fun TelaLoginPreview(){
-        TelaLogin()
-    }
 
     fun loginAuth(email: String, senha: String, onResult: (Boolean) -> Unit){
         Firebase.auth.signInWithEmailAndPassword(email, senha).addOnCompleteListener(this) { task ->

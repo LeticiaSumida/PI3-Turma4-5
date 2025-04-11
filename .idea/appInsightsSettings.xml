@@ -9,9 +9,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.example.myapplication" />
-                  <option name="mobileSdkAppId" value="1:740722574545:android:6ca32b63bca0284a8cb1f0" />
-                  <option name="projectId" value="experimento-firestore-0604" />
-                  <option name="projectNumber" value="740722574545" />
+                  <option name="mobileSdkAppId" value="1:230927964369:android:f10fd27125fc044c2d4df0" />
+                  <option name="projectId" value="superid-d1bf3" />
+                  <option name="projectNumber" value="230927964369" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

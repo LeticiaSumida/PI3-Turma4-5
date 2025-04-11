@@ -34,14 +34,28 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 private lateinit var auth: FirebaseAuth
 private val TAG=  "SignUpActivityLOG"
@@ -60,7 +74,8 @@ class SignUpActivity : ComponentActivity() {
         var nome by remember { mutableStateOf("") }
         var email by remember { mutableStateOf("")}
         var senha by remember { mutableStateOf("")}
-
+        var erroSenha by remember { mutableStateOf(false) }
+        var erroEmail by remember { mutableStateOf(false) }
 
 
 
@@ -116,13 +131,19 @@ class SignUpActivity : ComponentActivity() {
             onClick = {
                 if (senha.length >= 6) {
 
-                    addAuth(email, senha)
-                    val uid = auth.currentUser?.uid!!
-                    addFirestore(nome, email, senha, uid)
-
-
-                    Log.d(TAG, "Usuario criado com sucesso")
+                    checarEmail(email){ emailexistente ->
+                        if (emailexistente){
+                            Log.w(TAG,"Usuario com email cadastrado" )
+                            erroEmail = true
+                            }
+                        else {
+                            addAuth(email, senha)
+                            val uid = auth.currentUser?.uid!!
+                            addFirestore(nome, email, senha, uid)
+                            Log.d(TAG, "Usuario criado com sucesso")
+                    }}
                 } else{
+                    erroSenha = true
                     Log.w(TAG,"Sua senha precisa ter mais de 6 caracteres" )
                 }},
             modifier = Modifier
@@ -130,11 +151,71 @@ class SignUpActivity : ComponentActivity() {
                 .padding(vertical = 10.dp, horizontal = 12.dp)
             ){
                 Text("Cadastrar")
+                if (erroEmail){
+                    msgErroEmail(
+                        onDismiss = { erroEmail = false },
+                        onConfirm = { erroEmail = false }
+                    )
+                if (erroSenha){
+                    msgErroSenha(
+                        onDismiss = { erroSenha = false },
+                        onConfirm = { erroSenha = false }
+                    )
+                }
+
+                }
             }
         }
         }
 
+    @Composable
+    fun msgErroSenha(
+        onDismiss: () -> Unit,
+        onConfirm: () -> Unit
+    ) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Erro") },
+            text = { Text("A senha precisa ter mais de 6 caracteres.") },
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 
+    @Composable
+    fun msgErroEmail(
+        onDismiss: () -> Unit,
+        onConfirm: () -> Unit
+    ) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Erro") },
+            text = { Text("O email ja esta cadastrado") },
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+
+    fun checarEmail(email: String, callback: (Boolean) -> Unit) {
+        val db = Firebase.firestore
+
+        db.collection("Usuario")
+            .whereEqualTo("email", email)
+            .get()
+            .addOnSuccessListener { documents ->
+                callback(!documents.isEmpty) // se achou algo, retorna true
+            }
+            .addOnFailureListener {
+                callback(false) // erro na consulta, assume que não achou
+            }
+    }
 
     fun addFirestore(nome: String, email: String, senha: String, uid: String){
 

@@ -70,10 +70,6 @@ class WelcomeActivity : ComponentActivity() {
 
 
 
-    @Preview
-    @Composable
-    fun PrimeiraTelaPreview(){
-        PrimeiraTela()
-    }
+
 }
 
