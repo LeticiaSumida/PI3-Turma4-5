@@ -63,9 +63,4 @@ class WelcomeActivity : ComponentActivity() {
             }
         }
     }
-
-
-
-
 }
-

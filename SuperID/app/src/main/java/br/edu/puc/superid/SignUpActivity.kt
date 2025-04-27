@@ -30,12 +30,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 
 private lateinit var auth: FirebaseAuth
-private val TAG=  "SignUpActivityLOG"
+private val TAG =  "SignUpActivityLOG"
+
 class SignUpActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,15 +48,14 @@ class SignUpActivity : ComponentActivity() {
             }
         }
     }
+
     @Composable
     fun TelaCadastro(){
         var nome by remember { mutableStateOf("") }
         var email by remember { mutableStateOf("")}
         var senha by remember { mutableStateOf("")}
-        var erroSenha by remember { mutableStateOf(false) }
-        var erroEmail by remember { mutableStateOf(false) }
-
-
+        var erroMensagem by remember { mutableStateOf<String?>(null) }
+        var isLoading by remember { mutableStateOf(false) }
 
         Column( modifier = Modifier
             .padding(24.dp)
@@ -65,14 +66,14 @@ class SignUpActivity : ComponentActivity() {
                 painter = painterResource(id = R.drawable.cadastro),
                 contentDescription = null,
                 modifier = Modifier.size(250.dp)
-
             )
+
             Text("Cadastre-se",
                 modifier = Modifier,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
-
             )
+
             TextField(modifier = Modifier
                 .padding(vertical = 10.dp, horizontal = 12.dp)
                 .fillMaxWidth(),
@@ -100,85 +101,63 @@ class SignUpActivity : ComponentActivity() {
 
             )
 
+            if (erroMensagem != null) {
+                Text(
+                    text = erroMensagem!!,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+            }
 
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xff000000)
-                ),
-            onClick = {
-                if (senha.length >= 6) {
-
-                    checarEmail(email){ emailexistente ->
-                        if (emailexistente){
-                            Log.w(TAG,"Usuario com email cadastrado" )
-                            erroEmail = true
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+            } else {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xff000000)
+                    ),
+                    onClick = {
+                        erroMensagem = null
+                        if (nome.isBlank() || email.isBlank() || senha.isBlank()) {
+                            erroMensagem = "Preencha todos os campos."
+                        }else {
+                            if (senha.length < 6) {
+                                erroMensagem = "A senha precisa ter no mínimo 6 caracteres."
+                            } else {
+                                isLoading = true
+                                checarEmail(email) { emailExistente ->
+                                    if (emailExistente) {
+                                        erroMensagem = "O email já está cadastrado."
+                                        isLoading = false
+                                    } else {
+                                        addAuth(email, senha) { sucessoAuth ->
+                                            if (sucessoAuth) {
+                                                val uid = auth.currentUser?.uid ?: ""
+                                                addFirestore(nome, email, senha, uid)
+                                                isLoading = false
+                                                Log.d(TAG, "Usuário criado com sucesso")
+                                            } else {
+                                                erroMensagem = "Erro ao criar usuário."
+                                                isLoading = false
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        else {
-                            addAuth(email, senha)
-                            val uid = auth.currentUser?.uid!!
-                            addFirestore(nome, email, senha, uid)
-                            Log.d(TAG, "Usuario criado com sucesso")
-                    }}
-                } else{
-                    erroSenha = true
-                    Log.w(TAG,"Sua senha precisa ter mais de 6 caracteres" )
-                }},
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp, horizontal = 12.dp)
-            ){
-                Text("Cadastrar")
-                if (erroEmail){
-                    msgErroEmail(
-                        onDismiss = { erroEmail = false },
-                        onConfirm = { erroEmail = false }
-                    )
-                if (erroSenha){
-                    msgErroSenha(
-                        onDismiss = { erroSenha = false },
-                        onConfirm = { erroSenha = false }
-                    )
-                }
-
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp, horizontal = 12.dp)
+                ) {
+                    Text("Cadastrar")
                 }
             }
         }
-        }
-
-    @Composable
-    fun msgErroSenha(
-        onDismiss: () -> Unit,
-        onConfirm: () -> Unit
-    ) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text("Erro") },
-            text = { Text("A senha precisa ter mais de 6 caracteres.") },
-            confirmButton = {
-                TextButton(onClick = onConfirm) {
-                    Text("OK")
-                }
-            }
-        )
     }
-
-    @Composable
-    fun msgErroEmail(
-        onDismiss: () -> Unit,
-        onConfirm: () -> Unit
-    ) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text("Erro") },
-            text = { Text("O email ja esta cadastrado") },
-            confirmButton = {
-                TextButton(onClick = onConfirm) {
-                    Text("OK")
-                }
-            }
-        )
-    }
-
 
     fun checarEmail(email: String, callback: (Boolean) -> Unit) {
         val db = Firebase.firestore
@@ -195,7 +174,6 @@ class SignUpActivity : ComponentActivity() {
     }
 
     fun addFirestore(nome: String, email: String, senha: String, uid: String){
-
         val db = Firebase.firestore
         val uid = "Ainda nao fez login"
         val user = hashMapOf(
@@ -208,31 +186,24 @@ class SignUpActivity : ComponentActivity() {
         db.collection("Usuario")
             .add(user)
             .addOnSuccessListener { documentReference ->
-                Log.d("$TAG", "Documento adicionado com ID: ${documentReference.id}")
+                Log.d(TAG, "Documento adicionado com ID: ${documentReference.id}")
             }
             .addOnFailureListener { e ->
                 Log.w( "Firestore", "Erro ao adicionar documento", e)
             }
     }
 
-    fun addAuth(email: String, senha: String){
+    fun addAuth(email: String, senha: String, callback: (Boolean) -> Unit) {
         Firebase.auth.createUserWithEmailAndPassword(email, senha).addOnCompleteListener(this) { task ->
             if (task.isSuccessful) {
-                // Sign in success, update UI with the signed-in user's information
-                Log.d(TAG, "Usuario criado no auth")
+                Log.d(TAG, "Usuário criado no auth")
+                callback(true)
             } else {
-                // If sign in fails, display a message to the user.
-                Log.w(TAG, "Erro ao criar usuario no auth", task.exception)
-
+                Log.w(TAG, "Erro ao criar usuário no auth", task.exception)
+                callback(false)
             }
         }
     }
-
-
-
-
-
-
 }
 
 
