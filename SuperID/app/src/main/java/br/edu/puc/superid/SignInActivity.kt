@@ -96,7 +96,7 @@ class SignInActivity : ComponentActivity() {
                     loginAuth(email, senha) { login -> atualizarBD(email)
                     if(login){
                         atualizarBD(email)
-                        val intent = Intent(context, MainActivity::class.java)
+                        val intent = Intent(context, CategoriesScreenActivity::class.java)
                         context.startActivity(intent)
                     } else{}}
 

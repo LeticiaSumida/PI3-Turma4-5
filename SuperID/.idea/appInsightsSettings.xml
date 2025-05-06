@@ -8,8 +8,8 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.example.myapplication" />
-                  <option name="mobileSdkAppId" value="1:230927964369:android:f10fd27125fc044c2d4df0" />
+                  <option name="appId" value="br.edu.puc.superid" />
+                  <option name="mobileSdkAppId" value="1:230927964369:android:a6441cab6d2181742d4df0" />
                   <option name="projectId" value="superid-d1bf3" />
                   <option name="projectNumber" value="230927964369" />
                 </ConnectionSetting>
