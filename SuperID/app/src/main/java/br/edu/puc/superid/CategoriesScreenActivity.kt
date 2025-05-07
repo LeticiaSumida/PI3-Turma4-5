@@ -195,11 +195,7 @@ class CategoriesScreenActivity : ComponentActivity() {
 
 
 
-@Preview
-@Composable
-fun PreviewTela(){
-    expandableCard()
-}
+
 
 
 
