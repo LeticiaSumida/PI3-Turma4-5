@@ -13,6 +13,9 @@
         android:theme="@style/Theme.superid"
         tools:targetApi="31">
         <activity
+            android:name=".TesteAcordionActivity"
+            android:exported="false" />
+        <activity
             android:name=".CategoriesScreenActivity"
             android:exported="false" />
         <activity

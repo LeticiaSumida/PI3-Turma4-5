@@ -186,6 +186,21 @@ class SignUpActivity : ComponentActivity() {
         db.collection("Usuario")
             .add(user)
             .addOnSuccessListener { documentReference ->
+                val userId = documentReference.id
+
+                val categoriasPadrao = listOf( // O rf-2 solicita 3 categorias padrões sendo a Sites Web impossível de deletar
+                    mapOf("nome" to "Sites Web", "deletavel" to false),
+                    mapOf("nome" to "Aplicativos", "deletavel" to true),
+                    mapOf("nome" to "Teclados de Acesso Físico", "deletavel" to true)
+                )
+
+                for (categoria in categoriasPadrao) {
+                    db.collection("Usuario").document(userId).collection("categorias").add(categoria) //Coleção Usuario.IdDoUsuario.SubColeção Categoria
+                }
+
+                //As senhas serão adicionadas manualmente futuramente, quando é criado um usuário apenas as categorias são obrigatórias
+
+
                 Log.d(TAG, "Documento adicionado com ID: ${documentReference.id}")
             }
             .addOnFailureListener { e ->
@@ -204,6 +219,7 @@ class SignUpActivity : ComponentActivity() {
             }
         }
     }
+
 }
 
 

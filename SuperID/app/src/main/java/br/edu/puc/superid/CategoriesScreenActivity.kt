@@ -7,31 +7,52 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import br.edu.puc.superid.ui.theme.SuperIdTheme
+import br.edu.puc.superid.ui.theme.branco
+import br.edu.puc.superid.ui.theme.roxo
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -54,6 +75,9 @@ class CategoriesScreenActivity : ComponentActivity() {
     fun CategoriaNaTela() {
         val categorias = remember { mutableStateListOf<String>() }
         val context = LocalContext.current
+
+
+
         LaunchedEffect(Unit) {
             CategoriasConta(categorias)
         }
@@ -72,7 +96,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                 ) {
                 Spacer(modifier = Modifier.height(16.dp))
                 categorias.forEach { cat ->
-                    Text(text = cat)
+                    expandableCard(cat)
                 }
 
             }
@@ -89,18 +113,107 @@ class CategoriesScreenActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    fun expandableCard(categoria: String){
+        var expandedState by remember { mutableStateOf(false) }
+        val rotationState by animateFloatAsState(
+            targetValue = if (expandedState) 180f else 0f)
+
+        Card(
+            modifier = Modifier
+
+                .padding(top = 10.dp)
+                .fillMaxWidth()
+                .animateContentSize(
+                    animationSpec = tween(
+                        delayMillis = 300,
+                        easing = LinearOutSlowInEasing
+                    )
+                )
+                .clickable {
+                    expandedState = !expandedState // Alterna o estado ao clicar
+                },
+            colors = CardDefaults.cardColors(
+                containerColor = roxo
+            )
+        ){
+            Column (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+
+            ){
+                Row(verticalAlignment = Alignment.CenterVertically){
+                    IconButton(
+                        modifier = Modifier
+                            .rotate(rotationState),
+
+                        onClick = {
+                            expandedState = !expandedState
+                        }
+
+                    ) {
+                        Icon(imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Expandir",
+                            tint = branco)
+                    }
+                    Text(modifier = Modifier,
+
+                        color = branco,
+                        text = categoria,
+                        overflow = TextOverflow.Ellipsis)
+
+
+                }
+
+                if(expandedState) {
+                    var text = "senha"
+                    var textMasked = "*".repeat(text.length)
+                    var checked by remember { mutableStateOf(false) }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            if (checked) text else textMasked,
+                            modifier = Modifier
+                                .weight(6f)
+                        )
+                        IconButton(
+                            modifier = Modifier
+                                .weight(6f),
+                            onClick = {
+                                checked = !checked
+                            }
+
+                        ){
+                            Icon(imageVector = Icons.Default.Lock, contentDescription = "Ver senha")}
+
+                    }
+                }
+
+            }
+        }
+    }
+
+
+
+@Preview
+@Composable
+fun PreviewTela(){
+    expandableCard()
+}
+
+
+
     fun CategoriasConta(categorias: SnapshotStateList<String>){
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
-        val uid = user?.uid
+        val uid = user!!.uid
 
-
-        db.collection("Categoria")
-            .whereEqualTo("uid", uid)
+        //db.collection("Usuario").document(userId).collection("categorias")
+        db.collection("Usuario").document(uid).collection("categorias")
             .get()
             .addOnSuccessListener { result ->
                 for (document in result) {
-                    val categoria = document.getString("categoria")
+                    val categoria = document.getString("nome")
                     if (categoria != null) {
                         categorias.add(categoria)
                     }

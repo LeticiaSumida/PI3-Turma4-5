@@ -78,7 +78,9 @@ class CategoryActivity : ComponentActivity() {
 
                 onClick = {
                     var categoria = categoria.uppercase()
-                    checarCategoria(categoria) { categoriaexistente ->
+                    val user = Firebase.auth.currentUser
+                    val uid = user!!.uid
+                    checarCategoria(categoria, uid) { categoriaexistente ->
                         if (categoriaexistente) {
                             Log.w(TAG, "Categoria ja cadastrada")
                             erroCategoria = true
@@ -140,11 +142,12 @@ class CategoryActivity : ComponentActivity() {
             }
     }
 
-    fun checarCategoria(categoria: String, callback: (Boolean) -> Unit) {
+    fun checarCategoria(categoria: String, uid:String, callback: (Boolean) -> Unit) {
         val db = Firebase.firestore
 
         db.collection("Categoria")
             .whereEqualTo("categoria", categoria)
+            .whereEqualTo("uid", uid)
             .get()
             .addOnSuccessListener { documents ->
                 callback(!documents.isEmpty) // se achou algo, retorna true
