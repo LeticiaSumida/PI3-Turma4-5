@@ -24,6 +24,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
@@ -33,7 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 
-private val TAG=  "SignInActivityLOG"
+private val TAG = "SignInActivityLOG"
 
 class SignInActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,72 +48,120 @@ class SignInActivity : ComponentActivity() {
 
     @Composable
     fun TelaLogin() {
-        var email by remember { mutableStateOf("")}
-        var senha by remember { mutableStateOf("")}
+        var email by remember { mutableStateOf("") }
+        var senha by remember { mutableStateOf("") }
+        var erroMensagem by remember { mutableStateOf<String?>(null) }
+        var isLoading by remember { mutableStateOf(false) }
         val context = LocalContext.current
 
 
-        Column( modifier = Modifier
-            .padding(24.dp)
-            .fillMaxWidth(),
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
 
-        ){
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.cadastro),
                 contentDescription = null,
                 modifier = Modifier.size(250.dp)
 
             )
-            Text("Login",
+            Text(
+                "Login",
                 modifier = Modifier,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
 
             )
-            TextField(modifier = Modifier
-                .padding(vertical = 10.dp, horizontal = 12.dp)
-                .fillMaxWidth(),
+            TextField(
+                modifier = Modifier
+                    .padding(vertical = 10.dp, horizontal = 12.dp)
+                    .fillMaxWidth(),
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") }
             )
 
-            TextField(modifier = Modifier
-                .padding(vertical = 10.dp, horizontal = 12.dp)
-                .fillMaxWidth(),
+            TextField(
+                modifier = Modifier
+                    .padding(vertical = 10.dp, horizontal = 12.dp)
+                    .fillMaxWidth(),
                 value = senha,
                 onValueChange = { senha = it },
                 label = { Text("Senha") },
                 visualTransformation = PasswordVisualTransformation()
             )
 
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xff000000)
-                ),
+            if (erroMensagem != null) {
+                Text(
+                    text = erroMensagem!!,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+            }
 
-                onClick = {
-                    loginAuth(email, senha) { login -> atualizarBD(email)
-                    if(login){
-                        atualizarBD(email)
-                        val intent = Intent(context, MainActivity::class.java)
-                        context.startActivity(intent)
-                    } else{}}
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+            } else {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xff000000)
+                    ),
 
+                    onClick = {
+                        erroMensagem = null
+                        if (email.isBlank() || senha.isBlank()) {
+                            erroMensagem = "Preencha todos os campos."
+                            return@Button
+                        }
+                        if (senha.length < 6) {
+                            erroMensagem = "A senha precisa ter no mínimo 6 caracteres."
+                            return@Button
+                        }
+                        if (!isValidEmail(email)) {
+                            erroMensagem = "Formato de email inválido."
+                            return@Button
+                        }
 
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp, horizontal = 12.dp)
-            ){
-                Text("Logar")
+                        isLoading = true
+
+                        loginAuth(email, senha) { login ->
+                            isLoading = false
+                            if (login) {
+                                val intent = Intent(context, MainActivity::class.java)
+                                context.startActivity(intent)
+                            } else {
+                                erroMensagem = "Usuário ou senha incorretos."
+                            }
+                        }
+
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp, horizontal = 12.dp)
+                ) {
+                    Text("Logar")
+                }
             }
         }
     }
 
 
-    fun loginAuth(email: String, senha: String, onResult: (Boolean) -> Unit){
+    fun isValidEmail(email: String?): Boolean {
+        if (email == null) return false
+
+        val EMAIL_PATTERN =
+            "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
+        val pattern = Regex(EMAIL_PATTERN)
+        return pattern.matches(email)
+    }
+
+    fun loginAuth(email: String, senha: String, onResult: (Boolean) -> Unit) {
         Firebase.auth.signInWithEmailAndPassword(email, senha).addOnCompleteListener(this) { task ->
             if (task.isSuccessful) {
                 Log.d(TAG, "Logado com sucesso")
@@ -121,40 +170,10 @@ class SignInActivity : ComponentActivity() {
 
                 Log.w(TAG, "Não foi possivel logar", task.exception)
                 onResult(false)
-
-
             }
         }
     }
-
-
-   fun atualizarBD(email: String) {
-       val novouid = Firebase.auth.uid
-       val db = Firebase.firestore
-
-       db.collection("Usuario")
-           //chatgpt
-           .whereEqualTo("email", email)
-           .get()
-           .addOnSuccessListener { result ->
-               if (!result.isEmpty) {
-                   val document = result.documents[0]
-                   val docId = document.id
-
-
-                   db.collection("Usuario").document(docId).update("uid", novouid)
-                       .addOnSuccessListener {
-                           Log.d(
-                               TAG,
-                               "Documento atualizado com sucesso"
-                           )
-                       }
-                       .addOnFailureListener { e -> Log.w(TAG, "Erro ao atualizar o documento", e) }
-
-               }
-
-           }
-   }}
+}
 
 
 
