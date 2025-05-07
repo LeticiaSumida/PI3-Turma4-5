@@ -126,7 +126,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                 .fillMaxWidth()
                 .animateContentSize(
                     animationSpec = tween(
-                        delayMillis = 300,
+                        delayMillis = 100,
                         easing = LinearOutSlowInEasing
                     )
                 )

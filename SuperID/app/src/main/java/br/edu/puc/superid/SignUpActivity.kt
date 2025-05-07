@@ -36,7 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 
 private lateinit var auth: FirebaseAuth
-private val TAG =  "SignUpActivityLOG"
+private val TAG = "SignUpActivityLOG"
 
 class SignUpActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,50 +50,54 @@ class SignUpActivity : ComponentActivity() {
     }
 
     @Composable
-    fun TelaCadastro(){
+    fun TelaCadastro() {
         var nome by remember { mutableStateOf("") }
-        var email by remember { mutableStateOf("")}
-        var senha by remember { mutableStateOf("")}
+        var email by remember { mutableStateOf("") }
+        var senha by remember { mutableStateOf("") }
         var erroMensagem by remember { mutableStateOf<String?>(null) }
         var isLoading by remember { mutableStateOf(false) }
 
-        Column( modifier = Modifier
-            .padding(24.dp)
-            .fillMaxWidth(),
-             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.cadastro),
                 contentDescription = null,
                 modifier = Modifier.size(250.dp)
             )
 
-            Text("Cadastre-se",
+            Text(
+                "Cadastre-se",
                 modifier = Modifier,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
 
-            TextField(modifier = Modifier
-                .padding(vertical = 10.dp, horizontal = 12.dp)
-                .fillMaxWidth(),
+            TextField(
+                modifier = Modifier
+                    .padding(vertical = 10.dp, horizontal = 12.dp)
+                    .fillMaxWidth(),
                 value = nome,
                 onValueChange = { nome = it },
                 label = { Text("Nome") }
             )
 
-            TextField(modifier = Modifier
-                .padding(vertical = 10.dp, horizontal = 12.dp)
-                .fillMaxWidth(),
+            TextField(
+                modifier = Modifier
+                    .padding(vertical = 10.dp, horizontal = 12.dp)
+                    .fillMaxWidth(),
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") }
             )
 
-
-            TextField(modifier = Modifier
-                .padding(vertical = 10.dp, horizontal = 12.dp)
-                .fillMaxWidth(),
+            TextField(
+                modifier = Modifier
+                    .padding(vertical = 10.dp, horizontal = 12.dp)
+                    .fillMaxWidth(),
                 value = senha,
                 onValueChange = { senha = it },
                 label = { Text("Senha Mestre") },
@@ -123,27 +127,31 @@ class SignUpActivity : ComponentActivity() {
                         erroMensagem = null
                         if (nome.isBlank() || email.isBlank() || senha.isBlank()) {
                             erroMensagem = "Preencha todos os campos."
-                        }else {
-                            if (senha.length < 6) {
-                                erroMensagem = "A senha precisa ter no mínimo 6 caracteres."
+                            return@Button
+                        }
+                        if (!isValidEmail(email)) {
+                            erroMensagem = "Formato de email inválido."
+                            return@Button
+                        }
+                        if (senha.length < 6) {
+                            erroMensagem = "A senha precisa ter no mínimo 6 caracteres."
+                            return@Button
+                        }
+                        isLoading = true
+                        checarEmail(email) { emailExistente ->
+                            if (emailExistente) {
+                                erroMensagem = "O email já está cadastrado."
+                                isLoading = false
                             } else {
-                                isLoading = true
-                                checarEmail(email) { emailExistente ->
-                                    if (emailExistente) {
-                                        erroMensagem = "O email já está cadastrado."
+                                addAuth(email, senha) { sucessoAuth ->
+                                    if (sucessoAuth) {
+                                        val uid = auth.currentUser?.uid ?: ""
+                                        addFirestore(nome, email, senha, uid)
                                         isLoading = false
+                                        Log.d(TAG, "Usuário criado com sucesso")
                                     } else {
-                                        addAuth(email, senha) { sucessoAuth ->
-                                            if (sucessoAuth) {
-                                                val uid = auth.currentUser?.uid ?: ""
-                                                addFirestore(nome, email, senha, uid)
-                                                isLoading = false
-                                                Log.d(TAG, "Usuário criado com sucesso")
-                                            } else {
-                                                erroMensagem = "Erro ao criar usuário."
-                                                isLoading = false
-                                            }
-                                        }
+                                        erroMensagem = "Erro ao criar usuário."
+                                        isLoading = false
                                     }
                                 }
                             }
@@ -157,6 +165,15 @@ class SignUpActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    fun isValidEmail(email: String?): Boolean {
+        if (email == null) return false
+
+        val EMAIL_PATTERN =
+            "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
+        val pattern = Regex(EMAIL_PATTERN)
+        return pattern.matches(email)
     }
 
     fun checarEmail(email: String, callback: (Boolean) -> Unit) {
@@ -173,9 +190,9 @@ class SignUpActivity : ComponentActivity() {
             }
     }
 
-    fun addFirestore(nome: String, email: String, senha: String, uid: String){
+    fun addFirestore(nome: String, email: String, senha: String, uid: String) {
         val db = Firebase.firestore
-        val uid = "Ainda nao fez login"
+
         val user = hashMapOf(
             "nome" to nome,
             "email" to email,
@@ -184,9 +201,10 @@ class SignUpActivity : ComponentActivity() {
         )
 
         db.collection("Usuario")
-            .add(user)
+            .document(uid)
+            .set(user)
             .addOnSuccessListener { documentReference ->
-                val userId = documentReference.id
+
 
                 val categoriasPadrao = listOf( // O rf-2 solicita 3 categorias padrões sendo a Sites Web impossível de deletar
                     mapOf("nome" to "Sites Web", "deletavel" to false),
@@ -195,31 +213,30 @@ class SignUpActivity : ComponentActivity() {
                 )
 
                 for (categoria in categoriasPadrao) {
-                    db.collection("Usuario").document(userId).collection("categorias").add(categoria) //Coleção Usuario.IdDoUsuario.SubColeção Categoria
+                    db.collection("Usuario").document(uid).collection("categorias").add(categoria) //Coleção Usuario.IdDoUsuario.SubColeção Categoria
                 }
 
                 //As senhas serão adicionadas manualmente futuramente, quando é criado um usuário apenas as categorias são obrigatórias
 
 
-                Log.d(TAG, "Documento adicionado com ID: ${documentReference.id}")
+
+                Log.d(TAG, "Documento adicionado com ID: $uid")
             }
             .addOnFailureListener { e ->
-                Log.w( "Firestore", "Erro ao adicionar documento", e)
+                Log.w("Firestore", "Erro ao adicionar documento", e)
             }
     }
 
     fun addAuth(email: String, senha: String, callback: (Boolean) -> Unit) {
-        Firebase.auth.createUserWithEmailAndPassword(email, senha).addOnCompleteListener(this) { task ->
-            if (task.isSuccessful) {
-                Log.d(TAG, "Usuário criado no auth")
-                callback(true)
-            } else {
-                Log.w(TAG, "Erro ao criar usuário no auth", task.exception)
-                callback(false)
+        Firebase.auth.createUserWithEmailAndPassword(email, senha)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    Log.d(TAG, "Usuário criado no auth")
+                    callback(true)
+                } else {
+                    Log.w(TAG, "Erro ao criar usuário no auth", task.exception)
+                    callback(false)
+                }
             }
-        }
     }
-
 }
-
-
