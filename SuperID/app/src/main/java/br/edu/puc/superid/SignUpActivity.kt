@@ -58,6 +58,7 @@ class SignUpActivity : ComponentActivity() {
         var senha by remember { mutableStateOf("") }
         var erroMensagem by remember { mutableStateOf<String?>(null) }
         var isLoading by remember { mutableStateOf(false) }
+        var showSuccessDialog by remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier
@@ -151,6 +152,7 @@ class SignUpActivity : ComponentActivity() {
                                         addFirestore(nome, email, senha, uid)
                                         isLoading = false
                                         Log.d(TAG, "Usuário criado com sucesso")
+                                        showSuccessDialog = true
                                     } else {
                                         erroMensagem = "Erro ao criar usuário."
                                         isLoading = false
@@ -165,6 +167,28 @@ class SignUpActivity : ComponentActivity() {
                 ) {
                     Text("Cadastrar")
                 }
+            }
+            if (showSuccessDialog) {
+                MessageDialog(
+                    type = MessageType.SUCCESS,
+                    titulo = "Cadastro realizado",
+                    mensagem = "Seu cadastro foi concluído com sucesso!",
+                    textoBotao1 = "Ir para Login",
+                    textoBotao2 = "Fechar",
+                    caminhoBotao1 = {
+                        showSuccessDialog = false
+
+                        val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    },
+                    caminhoBotao2 = {
+                        showSuccessDialog = false
+                    },
+                    onDismiss = {
+                        showSuccessDialog = false
+                    }
+                )
             }
         }
     }

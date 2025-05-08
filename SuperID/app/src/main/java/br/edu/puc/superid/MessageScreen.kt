@@ -85,8 +85,6 @@ fun MessageDialog(
         dismissButton = {}
     )
 }
-
-// Enum para representar os tipos de mensagem
 enum class MessageType {
     SUCCESS,
     ERROR,
