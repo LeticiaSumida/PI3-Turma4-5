@@ -1,5 +1,6 @@
 package br.edu.puc.superid
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -34,9 +35,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import org.mindrot.jbcrypt.BCrypt
 
 private lateinit var auth: FirebaseAuth
-private val TAG = "SignUpActivityLOG"
+private const val TAG = "SignUpActivityLOG"
 
 class SignUpActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -192,11 +194,12 @@ class SignUpActivity : ComponentActivity() {
 
     fun addFirestore(nome: String, email: String, senha: String, uid: String) {
         val db = Firebase.firestore
+        val senhaCrypto = hashPassword(senha)
 
         val user = hashMapOf(
             "nome" to nome,
             "email" to email,
-            "senha" to senha,
+            "senha" to senhaCrypto,
             "uid" to uid,
         )
 
@@ -222,5 +225,9 @@ class SignUpActivity : ComponentActivity() {
                     callback(false)
                 }
             }
+    }
+
+    fun hashPassword(password: String): String {
+        return BCrypt.hashpw(password, BCrypt.gensalt())
     }
 }

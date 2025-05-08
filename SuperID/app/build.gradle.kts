@@ -46,6 +46,9 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx:25.1.3")
     implementation("com.google.firebase:firebase-auth-ktx")
 
+    //dependencia criptografia de senha Bcrypt
+    implementation("org.mindrot:jbcrypt:0.4")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
