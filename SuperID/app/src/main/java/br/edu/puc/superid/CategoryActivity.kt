@@ -80,7 +80,7 @@ class CategoryActivity : ComponentActivity() {
                     var categoria = categoria.uppercase()
                     val user = Firebase.auth.currentUser
                     val uid = user!!.uid
-                    checarCategoria(categoria, uid) { categoriaexistente ->
+                    checarCategoria(categoria) { categoriaexistente ->
                         if (categoriaexistente) {
                             Log.w(TAG, "Categoria ja cadastrada")
                             erroCategoria = true
@@ -124,15 +124,16 @@ class CategoryActivity : ComponentActivity() {
     fun addFirestoreCategoria(categoria: String) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
-        val uid = user?.uid
+        val uid = user!!.uid
+        val deletavel = true
 
 
         var categoriaDb = hashMapOf(
-            "categoria" to categoria,
-            "uid" to uid
+            "nome" to categoria,
+            "deletavel" to deletavel
         )
 
-        db.collection("Categoria")
+        db.collection("Usuario").document(uid).collection("categorias")
             .add(categoriaDb)
             .addOnSuccessListener { documentReference ->
                 Log.d("${TAG}", "Documento adicionado com ID: ${documentReference.id}")
@@ -142,12 +143,14 @@ class CategoryActivity : ComponentActivity() {
             }
     }
 
-    fun checarCategoria(categoria: String, uid:String, callback: (Boolean) -> Unit) {
+    fun checarCategoria(categoria: String, callback: (Boolean) -> Unit) {
         val db = Firebase.firestore
+        val user = Firebase.auth.currentUser
+        val uid = user!!.uid
 
-        db.collection("Categoria")
-            .whereEqualTo("categoria", categoria)
-            .whereEqualTo("uid", uid)
+        db.collection("Usuario").document(uid).collection("categorias")
+            .whereEqualTo("nome", categoria)
+
             .get()
             .addOnSuccessListener { documents ->
                 callback(!documents.isEmpty) // se achou algo, retorna true

@@ -5,8 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -30,6 +28,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,13 +42,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
 import br.edu.puc.superid.ui.theme.roxo
@@ -105,7 +100,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     context.startActivity(intent) },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .clip(RoundedCornerShape(50)),
+                    .clip(RoundedCornerShape(90)),
 
             ) {
                 Text("+")
@@ -115,6 +110,7 @@ class CategoriesScreenActivity : ComponentActivity() {
 
     @Composable
     fun expandableCard(categoria: String){
+        val context = LocalContext.current
         var expandedState by remember { mutableStateOf(false) }
         val rotationState by animateFloatAsState(
             targetValue = if (expandedState) 180f else 0f)
@@ -170,7 +166,10 @@ class CategoriesScreenActivity : ComponentActivity() {
                     var text = "senha"
                     var textMasked = "*".repeat(text.length)
                     var checked by remember { mutableStateOf(false) }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(
+                        modifier = Modifier
+                    ){
+                    Row() {
                         Text(
                             if (checked) text else textMasked,
                             modifier = Modifier
@@ -184,8 +183,22 @@ class CategoriesScreenActivity : ComponentActivity() {
                             }
 
                         ){
-                            Icon(imageVector = Icons.Default.Lock, contentDescription = "Ver senha")}
+                            Icon(imageVector = Icons.Default.Lock, contentDescription = "Ver senha")}}
+                        TextButton(
+                            modifier = Modifier
+                                .weight(6f)
+                                .fillMaxWidth()
+                                .height(100.dp),
 
+                                    onClick = {
+                                        val intent = Intent(context, PasswordActivity::class.java)
+                                        context.startActivity(intent)
+                            }
+                        ){
+                            Text("Adicionar Senha",
+                            color = branco)
+                        }
+                    }
                     }
                 }
 
@@ -204,7 +217,7 @@ class CategoriesScreenActivity : ComponentActivity() {
         val user = Firebase.auth.currentUser
         val uid = user!!.uid
 
-        //db.collection("Usuario").document(userId).collection("categorias")
+
         db.collection("Usuario").document(uid).collection("categorias")
             .get()
             .addOnSuccessListener { result ->
@@ -219,4 +232,4 @@ class CategoriesScreenActivity : ComponentActivity() {
                 Log.w("Categoria", "Erro ao buscar categorias", exception)
             }
     }
-}
+
