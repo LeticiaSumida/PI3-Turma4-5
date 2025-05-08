@@ -33,6 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.google.firebase.auth.FirebaseAuth
+import org.mindrot.jbcrypt.BCrypt
 
 private val TAG = "SignInActivityLOG"
 
@@ -130,16 +132,21 @@ class SignInActivity : ComponentActivity() {
 
                         isLoading = true
 
-                        loginAuth(email, senha) { login ->
+                        verificarCredenciais(email, senha) { credenciaisValidas ->
                             isLoading = false
-                            if (login) {
-                                val intent = Intent(context, CategoriesScreenActivity::class.java)
-                                context.startActivity(intent)
+                            if (credenciaisValidas) {
+                                loginAuth(email, senha) { login ->
+                                    if (login) {
+                                        val intent = Intent(context, CategoriesScreenActivity::class.java)
+                                        context.startActivity(intent)
+                                    } else {
+                                        erroMensagem = "Erro na autenticação."
+                                    }
+                                }
                             } else {
-                                erroMensagem = "Usuário ou senha incorretos."
+                                erroMensagem = "Email ou senha incorretos."
                             }
                         }
-
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -161,6 +168,30 @@ class SignInActivity : ComponentActivity() {
         return pattern.matches(email)
     }
 
+    fun verificarCredenciais(email: String, senha: String, callback: (Boolean) -> Unit) {
+        val db = Firebase.firestore
+
+        db.collection("Usuario")
+            .whereEqualTo("email", email)
+            .get()
+            .addOnSuccessListener { result ->
+                if (!result.isEmpty) {
+                    val doc = result.documents[0]
+                    val senhaHash = doc.getString("senha")
+                    if (senhaHash != null && BCrypt.checkpw(senha, senhaHash)) {
+                        callback(true)
+                    } else {
+                        callback(false)
+                    }
+                } else {
+                    callback(false)
+                }
+            }
+            .addOnFailureListener {
+                callback(false)
+            }
+    }
+
     fun loginAuth(email: String, senha: String, onResult: (Boolean) -> Unit) {
         Firebase.auth.signInWithEmailAndPassword(email, senha).addOnCompleteListener(this) { task ->
             if (task.isSuccessful) {
@@ -174,6 +205,3 @@ class SignInActivity : ComponentActivity() {
         }
     }
 }
-
-
-

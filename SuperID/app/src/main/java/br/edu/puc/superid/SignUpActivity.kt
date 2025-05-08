@@ -1,42 +1,42 @@
 package br.edu.puc.superid
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import br.edu.puc.superid.ui.theme.SuperIdTheme
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.activity.ComponentActivity
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
-import android.util.Log
-import androidx.compose.ui.unit.sp
-import com.google.firebase.auth.auth
-import androidx.compose.foundation.Image
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.res.painterResource
-import com.google.firebase.auth.FirebaseAuth
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.TextButton
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import br.edu.puc.superid.ui.theme.SuperIdTheme
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
+import org.mindrot.jbcrypt.BCrypt
 
 private lateinit var auth: FirebaseAuth
-private val TAG = "SignUpActivityLOG"
+private const val TAG = "SignUpActivityLOG"
 
 class SignUpActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +56,7 @@ class SignUpActivity : ComponentActivity() {
         var senha by remember { mutableStateOf("") }
         var erroMensagem by remember { mutableStateOf<String?>(null) }
         var isLoading by remember { mutableStateOf(false) }
+        var showSuccessDialog by remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier
@@ -149,6 +150,7 @@ class SignUpActivity : ComponentActivity() {
                                         addFirestore(nome, email, senha, uid)
                                         isLoading = false
                                         Log.d(TAG, "Usuário criado com sucesso")
+                                        showSuccessDialog = true
                                     } else {
                                         erroMensagem = "Erro ao criar usuário."
                                         isLoading = false
@@ -163,6 +165,28 @@ class SignUpActivity : ComponentActivity() {
                 ) {
                     Text("Cadastrar")
                 }
+            }
+            if (showSuccessDialog) {
+                MessageDialog(
+                    type = MessageType.SUCCESS,
+                    titulo = "Cadastro realizado",
+                    mensagem = "Seu cadastro foi concluído com sucesso!",
+                    textoBotao1 = "Ir para Login",
+                    textoBotao2 = "Fechar",
+                    caminhoBotao1 = {
+                        showSuccessDialog = false
+
+                        val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    },
+                    caminhoBotao2 = {
+                        showSuccessDialog = false
+                    },
+                    onDismiss = {
+                        showSuccessDialog = false
+                    }
+                )
             }
         }
     }
@@ -192,11 +216,12 @@ class SignUpActivity : ComponentActivity() {
 
     fun addFirestore(nome: String, email: String, senha: String, uid: String) {
         val db = Firebase.firestore
+        val senhaCrypto = hashPassword(senha)
 
         val user = hashMapOf(
             "nome" to nome,
             "email" to email,
-            "senha" to senha,
+            "senha" to senhaCrypto,
             "uid" to uid,
         )
 
@@ -238,5 +263,9 @@ class SignUpActivity : ComponentActivity() {
                     callback(false)
                 }
             }
+    }
+
+    fun hashPassword(password: String): String {
+        return BCrypt.hashpw(password, BCrypt.gensalt())
     }
 }
