@@ -9,6 +9,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -25,10 +27,13 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,6 +57,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import kotlin.collections.forEach
 
 private lateinit var auth: FirebaseAuth
 
@@ -62,9 +68,11 @@ class CategoriesScreenActivity : ComponentActivity() {
         setContent {
             SuperIdTheme {
                 CategoriaNaTela()
+
             }
         }
     }
+
 
     @Composable
     fun CategoriaNaTela() {
@@ -114,7 +122,12 @@ class CategoriesScreenActivity : ComponentActivity() {
         var expandedState by remember { mutableStateOf(false) }
         val rotationState by animateFloatAsState(
             targetValue = if (expandedState) 180f else 0f)
+        val senhas = remember { mutableStateListOf<String>() }
 
+
+        LaunchedEffect(Unit) {
+            senhasConta(senhas, categoria)
+        }
         Card(
             modifier = Modifier
 
@@ -163,41 +176,26 @@ class CategoriesScreenActivity : ComponentActivity() {
                 }
 
                 if(expandedState) {
-                    var text = "senha"
-                    var textMasked = "*".repeat(text.length)
-                    var checked by remember { mutableStateOf(false) }
-                    Column(
+                    Spacer(modifier = Modifier.height(16.dp))
+                    senhas.forEach { senha ->
+                        mostrarSenhas(senha)
+                        HorizontalDivider()
+                    }
+
+                    TextButton(
                         modifier = Modifier
-                    ){
-                    Row() {
-                        Text(
-                            if (checked) text else textMasked,
-                            modifier = Modifier
-                                .weight(6f)
-                        )
-                        IconButton(
-                            modifier = Modifier
-                                .weight(6f),
-                            onClick = {
-                                checked = !checked
-                            }
-
-                        ){
-                            Icon(imageVector = Icons.Default.Lock, contentDescription = "Ver senha")}}
-                        TextButton(
-                            modifier = Modifier
-                                .weight(6f)
-                                .fillMaxWidth()
-                                .height(100.dp),
-
-                                    onClick = {
-                                        val intent = Intent(context, PasswordActivity::class.java)
-                                        context.startActivity(intent)
-                            }
-                        ){
-                            Text("Adicionar Senha",
-                            color = branco)
+                            .padding(vertical = 8.dp)
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .background(branco,
+                                RoundedCornerShape(50)),
+                        onClick = {
+                            val intent = Intent(context, PasswordActivity::class.java)
+                            context.startActivity(intent)
                         }
+                    ){
+                        Text("Adicionar Senha",
+                            color = roxo)
                     }
                     }
                 }
@@ -207,9 +205,58 @@ class CategoriesScreenActivity : ComponentActivity() {
     }
 
 
+    @Composable
+    fun mostrarSenhas(
+        senha: String){
 
 
 
+        var text = senha
+        var textMasked = "*".repeat(text.length)
+        var checked by remember { mutableStateOf(false) }
+        Column(
+            modifier = Modifier
+        ){
+            Row() {
+                Text(
+                    if (checked) text else textMasked,
+                    modifier = Modifier
+                        .weight(6f)
+                )
+                IconButton(
+                    modifier = Modifier
+                        .weight(6f),
+                    onClick = {
+                        checked = !checked
+                    }
+
+                ){
+                    Icon(imageVector = Icons.Default.Lock, contentDescription = "Ver senha")}}
+
+        }
+    }
+
+
+    fun senhasConta(senhas: SnapshotStateList<String>, categoria: String){
+        val db = Firebase.firestore
+        val user = Firebase.auth.currentUser
+        val uid = user!!.uid
+
+        db.collection("Usuario").document(uid).collection("senhas")
+            .whereEqualTo("Categoria", categoria)
+            .get()
+            .addOnSuccessListener { result ->
+                for (document in result) {
+                    val senha = document.getString("Senha")
+                    if (senha != null) {
+                        senhas.add(senha)
+                    }
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.w("Categoria", "Erro ao buscar categorias", exception)
+            }
+    }
 
 
     fun CategoriasConta(categorias: SnapshotStateList<String>){
