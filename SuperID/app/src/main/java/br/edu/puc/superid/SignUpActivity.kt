@@ -242,6 +242,16 @@ class SignUpActivity : ComponentActivity() {
         Firebase.auth.createUserWithEmailAndPassword(email, senha)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
+                    val user = Firebase.auth.currentUser
+                    user?.sendEmailVerification()
+                        ?.addOnCompleteListener { emailTask ->
+                            if (emailTask.isSuccessful) {
+                                Log.d(TAG, "E-mail de verificação enviado.")
+                            } else {
+                                Log.w(TAG, "Falha ao enviar e-mail de verificação", emailTask.exception)
+                            }
+                        }
+
                     Log.d(TAG, "Usuário criado no auth")
                     callback(true)
                 } else {
