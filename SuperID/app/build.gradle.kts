@@ -68,4 +68,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    //dependencia para usar texto clicavel
+    implementation("androidx.compose.foundation:foundation:1.9.0-alpha01")
 }
