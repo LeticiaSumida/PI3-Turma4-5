@@ -277,5 +277,6 @@ class SignUpActivity : ComponentActivity() {
 
     fun hashPassword(password: String): String {
         return BCrypt.hashpw(password, BCrypt.gensalt())
+
     }
 }

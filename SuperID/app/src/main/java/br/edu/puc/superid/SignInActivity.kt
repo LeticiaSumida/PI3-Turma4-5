@@ -21,7 +21,9 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,8 +33,10 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.auth
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import br.edu.puc.superid.ModalTextField
 import com.google.firebase.auth.FirebaseAuth
 import org.mindrot.jbcrypt.BCrypt
 
@@ -55,6 +59,7 @@ class SignInActivity : ComponentActivity() {
         var erroMensagem by remember { mutableStateOf<String?>(null) }
         var isLoading by remember { mutableStateOf(false) }
         val context = LocalContext.current
+        var esqueciSenhaModal by remember { mutableStateOf(false) }
 
 
         Column(
@@ -77,6 +82,7 @@ class SignInActivity : ComponentActivity() {
                 fontWeight = FontWeight.Bold
 
             )
+
             TextField(
                 modifier = Modifier
                     .padding(vertical = 10.dp, horizontal = 12.dp)
@@ -95,7 +101,23 @@ class SignInActivity : ComponentActivity() {
                 label = { Text("Senha") },
                 visualTransformation = PasswordVisualTransformation()
             )
+            Text("Esqueci minha senha",
+            modifier = Modifier.clickable(
+                onClick = { esqueciSenhaModal = true
+                    }
 
+            ))
+
+            if (esqueciSenhaModal){
+                ModalTextField(
+                    type = MessageType.EMAIL,
+                    titulo =  "Esqueceu sua senha?",
+                    mensagem= "Digite seu email e enviaremos um link para redefinir sua senha mestre",
+                    caminhoBotao2= {esqueciSenhaModal = false},
+                    textoBotao1= "Enviar link de redefinição",
+                    textoBotao2= "Cancelar",
+                    onDismiss= { esqueciSenhaModal = false })
+            }
             if (erroMensagem != null) {
                 Text(
                     text = erroMensagem!!,
@@ -153,6 +175,7 @@ class SignInActivity : ComponentActivity() {
                         .padding(vertical = 10.dp, horizontal = 12.dp)
                 ) {
                     Text("Logar")
+
                 }
             }
         }
@@ -204,4 +227,8 @@ class SignInActivity : ComponentActivity() {
             }
         }
     }
+
+
+
+
 }
