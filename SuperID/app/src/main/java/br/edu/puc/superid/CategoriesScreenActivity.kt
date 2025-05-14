@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -30,10 +29,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,18 +43,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
 import br.edu.puc.superid.ui.theme.roxo
+import br.edu.puc.superid.ui.theme.roxoclaro
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
-import kotlin.collections.forEach
+import java.nio.file.Files.size
 
 private lateinit var auth: FirebaseAuth
 
@@ -104,24 +105,27 @@ class CategoriesScreenActivity : ComponentActivity() {
 
             }
             Button(
-                onClick = { val intent = Intent(context, CategoryActivity::class.java)
-                    context.startActivity(intent) },
+                onClick = {
+                    val intent = Intent(context, CategoryActivity::class.java)
+                    context.startActivity(intent)
+                },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .clip(RoundedCornerShape(90)),
 
-            ) {
+                ) {
                 Text("+")
             }
         }
     }
 
     @Composable
-    fun expandableCard(categoria: String){
+    fun expandableCard(categoria: String) {
         val context = LocalContext.current
-        var expandedState by remember { mutableStateOf(false) }
+        var expandedState by remember { mutableStateOf(true) }
         val rotationState by animateFloatAsState(
-            targetValue = if (expandedState) 180f else 0f)
+            targetValue = if (expandedState) 180f else 0f
+        )
         val senhas = remember { mutableStateListOf<String>() }
 
 
@@ -143,16 +147,16 @@ class CategoriesScreenActivity : ComponentActivity() {
                     expandedState = !expandedState // Alterna o estado ao clicar
                 },
             colors = CardDefaults.cardColors(
-                containerColor = roxo
+                containerColor = roxoclaro,
             )
-        ){
-            Column (
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
 
-            ){
-                Row(verticalAlignment = Alignment.CenterVertically){
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
                         modifier = Modifier
                             .rotate(rotationState),
@@ -162,24 +166,29 @@ class CategoriesScreenActivity : ComponentActivity() {
                         }
 
                     ) {
-                        Icon(imageVector = Icons.Default.ArrowDropDown,
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = "Expandir",
-                            tint = branco)
+                            tint = branco
+                        )
                     }
-                    Text(modifier = Modifier,
-
+                    Text(
+                        modifier = Modifier,
+                        fontSize = 22.sp,
                         color = branco,
                         text = categoria,
-                        overflow = TextOverflow.Ellipsis)
+                        overflow = TextOverflow.Ellipsis
+                    )
 
 
                 }
 
-                if(expandedState) {
+                if (expandedState) {
                     Spacer(modifier = Modifier.height(16.dp))
                     senhas.forEach { senha ->
                         mostrarSenhas(senha)
-                        HorizontalDivider()
+                        HorizontalDivider(Modifier.padding(horizontal = 33.dp),
+                            color = Color.LightGray)
                     }
 
                     TextButton(
@@ -187,28 +196,41 @@ class CategoriesScreenActivity : ComponentActivity() {
                             .padding(vertical = 8.dp)
                             .fillMaxWidth()
                             .height(40.dp)
-                            .background(branco,
-                                RoundedCornerShape(50)),
+                            .background(
+                                color = roxoclaro,
+
+
+                            ),
+
                         onClick = {
                             val intent = Intent(context, PasswordActivity::class.java)
                             context.startActivity(intent)
                         }
-                    ){
-                        Text("Adicionar Senha",
-                            color = roxo)
-                    }
+                    ) {
+                        Text(
+                            "+ Adicionar Senha",
+
+                            color = branco,
+                            fontWeight = FontWeight.W600
+
+                        )
                     }
                 }
-
             }
+
         }
     }
 
+    @Preview
+    @Composable
+    fun previewCat(){
+        expandableCard("Teste")
+    }
 
     @Composable
     fun mostrarSenhas(
-        senha: String){
-
+        senha: String
+    ) {
 
 
         var text = senha
@@ -216,28 +238,34 @@ class CategoriesScreenActivity : ComponentActivity() {
         var checked by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
-        ){
-            Row() {
+        ) {
+            Row(modifier = Modifier
+                .padding(horizontal = 30.dp),
+                verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     if (checked) text else textMasked,
                     modifier = Modifier
-                        .weight(6f)
+                        .weight(6f),
+                    fontSize = 20.sp
                 )
                 IconButton(
                     modifier = Modifier
-                        .weight(6f),
+                        .weight(8f),
+
                     onClick = {
                         checked = !checked
                     }
 
-                ){
-                    Icon(imageVector = Icons.Default.Lock, contentDescription = "Ver senha")}}
+                ) {
+                    Icon(imageVector = Icons.Default.Lock, contentDescription = "Ver senha")
+                }
+            }
 
         }
     }
 
 
-    fun senhasConta(senhas: SnapshotStateList<String>, categoria: String){
+    fun senhasConta(senhas: SnapshotStateList<String>, categoria: String) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
         val uid = user!!.uid
@@ -259,7 +287,7 @@ class CategoriesScreenActivity : ComponentActivity() {
     }
 
 
-    fun CategoriasConta(categorias: SnapshotStateList<String>){
+    fun CategoriasConta(categorias: SnapshotStateList<String>) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
         val uid = user!!.uid
@@ -280,3 +308,4 @@ class CategoriesScreenActivity : ComponentActivity() {
             }
     }
 
+}

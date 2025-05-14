@@ -71,4 +71,10 @@ dependencies {
 
     //dependencia para usar texto clicavel
     implementation("androidx.compose.foundation:foundation:1.9.0-alpha01")
+
+    //dependencia para material3
+    implementation("androidx.compose.material3:material3:1.x.x")
+
+    //dependencia para fontes
+    implementation ("androidx.compose.ui:ui-text-google-fonts:1.8.1")
 }

@@ -4,15 +4,20 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,9 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.ui.theme.SuperIdTheme
@@ -34,6 +40,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+
 
 private lateinit var auth: FirebaseAuth
 private val TAG=  "PasswordActivityLOG"
@@ -50,7 +57,7 @@ class PasswordActivity : ComponentActivity() {
 
     @Composable
     fun telaCadastroSenha() {
-        val context = LocalContext.current
+
 
         var login by remember { mutableStateOf("") }
         var senha by remember { mutableStateOf("") }
@@ -66,7 +73,7 @@ class PasswordActivity : ComponentActivity() {
 
         Column(
             modifier = Modifier
-                .padding(top = 30.dp)
+                .padding(vertical = 8.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
 
@@ -78,128 +85,210 @@ class PasswordActivity : ComponentActivity() {
                 fontWeight = FontWeight.Bold,
                 color = roxo
             )
-            TextField(
-                modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 12.dp)
-                    .fillMaxWidth(),
+            UnderlineTextField(
                 value = login,
                 onValueChange = { login = it },
-                label = { Text("Login") }
+                label = "Login"
             )
-            TextField(
-                modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 12.dp)
-                    .fillMaxWidth(),
+
+            UnderlineTextField(
                 value = senha,
                 onValueChange = { senha = it },
-                label = { Text("Senha") },
-                visualTransformation = PasswordVisualTransformation()
+                label = "Senha"
 
             )
-            TextField(
-                modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 12.dp)
-                    .fillMaxWidth(),
+            UnderlineTextField(
                 value = desc,
                 onValueChange = { desc = it },
-                label = { Text("Descrição") }
+                label = "Descrição"
+
             )
-            DropDownCategoria(categorias = categorias,
+            DropDownCategoria(
+                categorias = categorias,
                 categoriaSelecionada = categoriaSelecionada,
                 onCategoriaSelecionadaChange = { categoriaSelecionada = it })
-            Button(
-                onClick = {addFirestoreSenha(login, senha, desc, categoriaSelecionada)
-                    Log.d(TAG, "Categoria selecionada: $categoriaSelecionada")},
+            HorizontalDivider(thickness = 0.5.dp,
+            modifier = Modifier.padding(horizontal = 33.dp),
+            color = Color.Gray )
+            TextButton(
+                onClick = {
+                    addFirestoreSenha(login, senha, desc, categoriaSelecionada)
+                    Log.d(TAG, "Categoria selecionada: $categoriaSelecionada")
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 10.dp, horizontal = 12.dp)
+                    .padding(vertical = 10.dp, horizontal = 12.dp),
+
+
+
+                ) {
+                Text(
+                    "Cadastrar",
+                )
+            }
+
+
+
+        }
+
+    }
+
+    @Composable
+    fun DropDownCategoria(
+        categorias: List<String>,
+        categoriaSelecionada: String,
+        onCategoriaSelecionadaChange: (String) -> Unit
+    ) {
+        var expanded by remember { mutableStateOf(false) }
+
+
+        TextButton(
+            modifier = Modifier
+                .padding(top =  10.dp)
+                .padding(horizontal = 33.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(10),
+
+            onClick = { expanded = !expanded }
+        ) {
+            if (expanded) {
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }) {
+                    categorias.forEach { categoria ->
+                        DropdownMenuItem(
+                            text = { Text(categoria) },
+                            onClick = {
+                                onCategoriaSelecionadaChange(categoria)
+                                expanded = !expanded
+                            }
+
+                        )
+                    }
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
             ) {
-                Text("Cadastrar")
+                Text(
+                    categoriaSelecionada,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                        .padding(vertical = 10.dp),
+                )
+
+            }
+
+        }
+
+
+    }
+
+    fun addFirestoreSenha(login: String, senha: String, desc: String, categoria: String) {
+        val db = Firebase.firestore
+        val user = Firebase.auth.currentUser
+        val uid = user!!.uid
+        val deletavel = true
+
+
+        var senhaDb = hashMapOf(
+            "Login" to login,
+            "Senha" to senha,
+            "Descrição" to desc,
+            "Categoria" to categoria,
+            "deletavel" to deletavel
+        )
+
+        db.collection("Usuario").document(uid).collection("senhas").add(senhaDb)
+            .addOnSuccessListener { documentReference ->
+                Log.d(TAG, "Documento adicionado com ID: $uid")
+            }
+            .addOnFailureListener { e ->
+                Log.w("Firestore", "Erro ao adicionar documento", e)
             }
 
 
-        }
-
-    }
-}
-@Composable
-fun DropDownCategoria(categorias: List<String>,
-                      categoriaSelecionada: String,
-                      onCategoriaSelecionadaChange: (String) -> Unit){
-    var expanded by remember { mutableStateOf(false)}
-
-
-    TextButton(
-        modifier = Modifier
-            .fillMaxWidth(),
-        onClick = {expanded = !expanded}
-    ){
-        if(expanded){
-            DropdownMenu(expanded = expanded,
-                onDismissRequest = { expanded = false }) {
-                categorias.forEach { categoria ->
-                    DropdownMenuItem(
-                    text = { Text(categoria) },
-                    onClick = {onCategoriaSelecionadaChange(categoria)
-                    expanded=!expanded}
-
-                )  }}
-        }
-        Text(categoriaSelecionada)
     }
 
-}
-
-fun addFirestoreSenha(login: String, senha: String, desc:String, categoria: String) {
-    val db = Firebase.firestore
-    val user = Firebase.auth.currentUser
-    val uid = user!!.uid
-    val deletavel = true
+    fun carregarCategorias(categorias: SnapshotStateList<String>) {
+        val db = Firebase.firestore
+        val user = Firebase.auth.currentUser
+        val uid = user!!.uid
 
 
-    var senhaDb = hashMapOf(
-        "Login" to login,
-        "Senha" to senha,
-        "Descrição" to desc,
-        "Categoria" to categoria,
-        "deletavel" to deletavel
-    )
-
-    db.collection("Usuario").document(uid).collection("senhas").add(senhaDb)
-        .addOnSuccessListener { documentReference ->
-            Log.d(TAG, "Documento adicionado com ID: $uid")}
-        .addOnFailureListener { e ->
-                    Log.w("Firestore", "Erro ao adicionar documento", e)
-                }
-
-
-
-
-}
-
-fun carregarCategorias(categorias: SnapshotStateList<String>){
-    val db = Firebase.firestore
-    val user = Firebase.auth.currentUser
-    val uid = user!!.uid
-
-
-    db.collection("Usuario").document(uid).collection("categorias")
-        .get()
-        .addOnSuccessListener { result ->
-            for (document in result) {
-                val categoria = document.getString("nome")
-                if (categoria != null) {
-                    categorias.add(categoria)
+        db.collection("Usuario").document(uid).collection("categorias")
+            .get()
+            .addOnSuccessListener { result ->
+                for (document in result) {
+                    val categoria = document.getString("nome")
+                    if (categoria != null) {
+                        categorias.add(categoria)
+                    }
                 }
             }
+            .addOnFailureListener { exception ->
+                Log.w("Categoria", "Erro ao buscar categorias", exception)
+            }
+    }
+
+    @Preview
+    @Composable
+    fun telaSenhaPreview() {
+        telaCadastroSenha()
+    }
+
+    @Composable
+    fun UnderlineTextField(
+        value: String,
+        onValueChange: (String) -> Unit,
+        label: String,
+    ) {
+        if (label == "Senha") {
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { Text(label) },
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    disabledTextColor = Color.LightGray,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Gray,
+                    unfocusedIndicatorColor = Color.Gray,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 30.dp),
+                    visualTransformation = PasswordVisualTransformation()
+            )
+        } else {
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { Text(label) },
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    disabledTextColor = Color.LightGray,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Gray,
+                    unfocusedIndicatorColor = Color.Gray,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 30.dp)
+            )
+
         }
-        .addOnFailureListener { exception ->
-            Log.w("Categoria", "Erro ao buscar categorias", exception)
-        }
+
+
+    }
 }
-
-
-
-
 
 

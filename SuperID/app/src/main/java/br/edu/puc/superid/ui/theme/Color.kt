@@ -11,4 +11,11 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 val roxo = Color(0xFF5847AA)
+val roxoclaro = Color(0xFF7D6BB3)
 val branco = Color(0xFFFFFFFF)
+val transparente = Color(0xFFFFFF00)
+val cinza = Color(0xFF5F6E6D)
+
+val preto = Color(0xFF000000)
+val cinzaescuro = Color(0xFF252525)
+val cinzaclaro = Color(0xFF34383A)

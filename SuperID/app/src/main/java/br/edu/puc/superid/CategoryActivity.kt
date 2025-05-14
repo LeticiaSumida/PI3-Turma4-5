@@ -119,7 +119,7 @@ class CategoryActivity : ComponentActivity() {
             }
 
         }
-    }
+
 
     fun addFirestoreCategoria(categoria: String) {
         val db = Firebase.firestore
@@ -159,7 +159,7 @@ class CategoryActivity : ComponentActivity() {
                 callback(false) // erro na consulta, assume que não achou
             }
     }
-
+}
 
 
 
