@@ -14,7 +14,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import android.content.Intent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
+import br.edu.puc.superid.ui.theme.roxo
 import com.google.firebase.FirebaseApp
 
 
@@ -37,30 +48,50 @@ class WelcomeActivity : ComponentActivity() {
         Column(
             modifier = Modifier
                 .padding(24.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ){
-            Button(
+            Image(
+                painter = painterResource(id = R.drawable.cadastro),
+                contentDescription = null,
+                modifier = Modifier.size(250.dp)
+
+            )
+            Text("SuperID",
+                modifier = Modifier
+                    .padding(40.dp),
+                fontSize = 60.sp,
+                color = roxo
+            )
+            OutlinedButton(
                 onClick = {
                     val intent = Intent(context, SignUpActivity::class.java)
                     context.startActivity(intent)
 
-
                 },
                 modifier = Modifier
-                .fillMaxWidth()
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp)
             ){
                 Text("Cadastrar")
             }
-            Button(
+            OutlinedButton(
                 onClick = {
                     val intent = Intent(context, SignInActivity::class.java)
                     context.startActivity(intent)
                 },
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp)
             ){
                 Text("Login")
             }
         }
+    }
+
+    @Preview
+    @Composable
+    fun previewprimeiratela(){
+        PrimeiraTela()
     }
 }
