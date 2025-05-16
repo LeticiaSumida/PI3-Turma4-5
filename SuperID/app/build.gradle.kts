@@ -71,4 +71,7 @@ dependencies {
 
     //dependencia para usar texto clicavel
     implementation("androidx.compose.foundation:foundation:1.9.0-alpha01")
+
+    //dependendia de icones
+    implementation ("androidx.compose.material:material-icons-extended:<1.6.0>")
 }

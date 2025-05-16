@@ -24,9 +24,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
@@ -36,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import br.edu.puc.superid.ModalTextField
 import com.google.firebase.auth.FirebaseAuth
 import org.mindrot.jbcrypt.BCrypt
@@ -60,6 +66,7 @@ class SignInActivity : ComponentActivity() {
         var isLoading by remember { mutableStateOf(false) }
         val context = LocalContext.current
         var esqueciSenhaModal by remember { mutableStateOf(false) }
+        var senhaVisibilidade by remember { mutableStateOf(false) }
 
 
         Column(
@@ -98,9 +105,20 @@ class SignInActivity : ComponentActivity() {
                     .fillMaxWidth(),
                 value = senha,
                 onValueChange = { senha = it },
-                label = { Text("Senha") },
-                visualTransformation = PasswordVisualTransformation()
+                label = { Text("Senha Mestre") },
+                visualTransformation = if (senhaVisibilidade) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (senhaVisibilidade)
+                        Icons.Default.Visibility
+                    else
+                        Icons.Default.VisibilityOff
+
+                    IconButton(onClick = { senhaVisibilidade = !senhaVisibilidade }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                }
             )
+
             Text("Esqueci minha senha",
             modifier = Modifier.clickable(
                 onClick = { esqueciSenhaModal = true
@@ -161,6 +179,7 @@ class SignInActivity : ComponentActivity() {
                                     if (login) {
                                         val intent = Intent(context, MainActivity::class.java)
                                         context.startActivity(intent)
+                                        finish()
                                     } else {
                                         erroMensagem = "Erro na autenticação."
                                     }
@@ -178,6 +197,16 @@ class SignInActivity : ComponentActivity() {
 
                 }
             }
+
+            Text("Ainda não tem conta? Cadastre-se",
+                modifier = Modifier.clickable(
+                    onClick = {
+                        val intent = Intent(context, SignUpActivity::class.java)
+                        context.startActivity(intent)
+                        finish()
+                    }
+
+                ))
         }
     }
 

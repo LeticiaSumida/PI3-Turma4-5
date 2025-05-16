@@ -23,18 +23,25 @@ import android.util.Log
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.auth
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import org.mindrot.jbcrypt.BCrypt
 
 private lateinit var auth: FirebaseAuth
@@ -59,6 +66,7 @@ class SignUpActivity : ComponentActivity() {
         var erroMensagem by remember { mutableStateOf<String?>(null) }
         var isLoading by remember { mutableStateOf(false) }
         var showSuccessDialog by remember { mutableStateOf(false) }
+        var senhaVisibilidade by remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier
@@ -104,7 +112,17 @@ class SignUpActivity : ComponentActivity() {
                 value = senha,
                 onValueChange = { senha = it },
                 label = { Text("Senha Mestre") },
-                visualTransformation = PasswordVisualTransformation()
+                visualTransformation = if (senhaVisibilidade) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (senhaVisibilidade)
+                        Icons.Default.Visibility
+                    else
+                        Icons.Default.VisibilityOff
+
+                    IconButton(onClick = { senhaVisibilidade = !senhaVisibilidade }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                }
 
             )
 
@@ -168,6 +186,17 @@ class SignUpActivity : ComponentActivity() {
                     Text("Cadastrar")
                 }
             }
+
+            Text("Já tem uma conta? Faça Login",
+                modifier = Modifier.clickable(
+                    onClick = {
+                        val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+
+                ))
+
             if (showSuccessDialog) {
                 MessageDialog(
                     type = MessageType.SUCCESS,
