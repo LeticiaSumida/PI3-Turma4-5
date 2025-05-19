@@ -10,12 +10,17 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.with
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -27,9 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -62,11 +70,10 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                             contentDescription = null,
                             modifier = Modifier.size(300.dp)
                         )
-                        Text("Seja bem-vindo!", style = MaterialTheme.typography.headlineMedium)
+                        Text("Seja bem-vindo!\n", style = MaterialTheme.typography.headlineMedium)
                         Text(
-                            "Estamos felizes em ter você aqui.",
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(top = 0.dp)
+                            "Lorem ipsum dolor sit amet. Rem erf rfrfr numquam commodi 33 temporibus voluptas non Quis voluptates. Et nihil quaerat non natus illum hic expedita numquam ut accusamus beatae.",
+                            fontSize = 18.sp,
                         )
                     }
                 }
@@ -78,8 +85,11 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                             contentDescription = null,
                             modifier = Modifier.size(300.dp).padding(16.dp)
                         )
-                        Text("Passo 1", style = MaterialTheme.typography.headlineMedium)
-                        Text("Navegue facilmente pelo app.", style = MaterialTheme.typography.bodyLarge)
+                        Text("Passo 1\n", style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            "Lorem ipsum dolor sit amet. Rem erf rfrfr numquam commodi 33 temporibus voluptas non Quis voluptates. Et nihil quaerat non natus illum hic expedita numquam ut accusamus beatae.",
+                            fontSize = 18.sp,
+                        )
                     }
                 }
 
@@ -90,8 +100,11 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                             contentDescription = null,
                             modifier = Modifier.size(300.dp).padding(16.dp)
                         )
-                        Text("Passo 2", style = MaterialTheme.typography.headlineMedium)
-                        Text("Gerencie suas tarefas rapidamente.", style = MaterialTheme.typography.bodyLarge)
+                        Text("Passo 2\n", style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            "Lorem ipsum dolor sit amet. Rem erf rfrfr numquam commodi 33 temporibus voluptas non Quis voluptates. Et nihil quaerat non natus illum hic expedita numquam ut accusamus beatae.",
+                            fontSize = 18.sp,
+                        )
                     }
                 }
 
@@ -99,13 +112,13 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("\n\nTermos e Condições\n", style = MaterialTheme.typography.headlineMedium)
                         Text(
-                            "Ao utilizar o aplicativo SuperID, voce concorda com os seguintes termos:\n\n" +
+                            "Ao utilizar o aplicativo SuperID, voce concorda com os seguintes termos:\n" +
                                     "O usuário é reponsável pels informacoes fornecidas no cadastro e pelo uso adequado da senha mestre.\n\n" +
                                     "Todas as senhas e dados armazenados sao criptografados, mas o SuperID nao se responsabiliza por perdas decorrentes de acessos nao autorizados causados por negligencia do usuário.\n\n" +
                                     "A funcionalidade de login via QR Code está disponivel apenas para plataformas compativeis e parceiras.\n\n" +
                                     "O usuário concorda em nao utilizar o SuperID para atividades ilegais ou que violem direitos de terceiros.\n\n" +
                                     "Ao prosseguir, voce confirma que leu, compreendeu e aceita integralmente os termos de uso.\n",
-                            style = MaterialTheme.typography.bodyLarge
+                            fontSize = 18.sp,
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(checked = aceitouTermos, onCheckedChange = { aceitouTermos = it })
@@ -116,19 +129,50 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
             }
         }
 
-        Button(
-            onClick = {
-                if (paginaAtual < paginas.lastIndex) {
-                    paginaAtual++
-                } else if (aceitouTermos) {
-                    onAceitar()
+        Row (
+            modifier = Modifier
+                .align(Alignment.End)
+                .padding(bottom = 25.dp)
+            ){
+            if(paginas[paginaAtual] != "welcome") {
+                Button(
+                    onClick = {
+                        if (paginaAtual <= paginas.lastIndex) {
+                            paginaAtual--
+                        }
+                    },
+                ) {
+                    Text("Voltar")
                 }
-            },
-            modifier = Modifier.align(Alignment.End),
-            enabled = paginaAtual < paginas.lastIndex || aceitouTermos
-        ) {
-            Text(if (paginaAtual == paginas.lastIndex) "Finalizar" else "Próximo")
+            }
+            /*Spacer(modifier = Modifier.padding(horizontal = 10.dp))
+            repeat(paginas.indexOf(String())) { index ->
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(if (paginaAtual == index) Color.Black else Color.Gray)
+                        .clickable { paginaAtual.scrollToPage(index) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("t")
+                }
+            }*/
+            Spacer(modifier = Modifier.padding(horizontal = 87.dp))
+            Button(
+                onClick = {
+                    if (paginaAtual < paginas.lastIndex) {
+                        paginaAtual++
+                    } else if (aceitouTermos) {
+                        onAceitar()
+                    }
+                },
+                enabled = paginaAtual < paginas.lastIndex || aceitouTermos
+            ) {
+                Text(if (paginaAtual == paginas.lastIndex) "Finalizar" else "Próximo")
+            }
         }
+
     }
 }
 
