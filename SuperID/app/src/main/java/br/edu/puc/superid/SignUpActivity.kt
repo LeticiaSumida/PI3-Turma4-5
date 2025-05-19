@@ -20,6 +20,7 @@ import androidx.activity.ComponentActivity
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import android.util.Log
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.auth
 import androidx.compose.foundation.Image
@@ -33,15 +34,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import br.edu.puc.superid.ui.MessageDialog
+import br.edu.puc.superid.ui.MessageType
+import br.edu.puc.superid.ui.WelcomeCarousel
+import com.google.firebase.FirebaseApp
 import org.mindrot.jbcrypt.BCrypt
 
 private lateinit var auth: FirebaseAuth
@@ -50,10 +53,25 @@ private const val TAG = "SignUpActivityLOG"
 class SignUpActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         auth = Firebase.auth
+        val prefs = getSharedPreferences("tutorial_prefs", MODE_PRIVATE)
+        val tutorialVisto = prefs.getBoolean("tutorial_visto", false)
+
+        enableEdgeToEdge()
         setContent {
             SuperIdTheme {
-                TelaCadastro()
+                var telaAtual by remember { mutableStateOf(if (tutorialVisto) "home" else "tutorial") }
+
+                when (telaAtual) {
+                    "tutorial" -> WelcomeCarousel(
+                        onAceitar = {
+                            prefs.edit().putBoolean("tutorial_visto", true).apply()
+                            telaAtual = "home"
+                        }
+                    )
+                    "home" -> TelaCadastro()
+                }
             }
         }
     }

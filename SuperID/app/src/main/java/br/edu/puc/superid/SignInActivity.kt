@@ -23,7 +23,6 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -38,12 +37,11 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.auth
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import br.edu.puc.superid.ModalTextField
-import com.google.firebase.auth.FirebaseAuth
+import br.edu.puc.superid.ui.MessageType
+import br.edu.puc.superid.ui.ModalTextField
 import org.mindrot.jbcrypt.BCrypt
 
 private val TAG = "SignInActivityLOG"
