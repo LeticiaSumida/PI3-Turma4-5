@@ -13,12 +13,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -34,6 +38,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -68,6 +73,8 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.compose.runtime.SideEffect
 
 private lateinit var auth: FirebaseAuth
 
@@ -88,14 +95,20 @@ class CategoriesScreenActivity : ComponentActivity() {
         var login: String,
         var senha: String
     )
-
     @Composable
     fun CategoriaNaTela() {
         val categorias = remember { mutableStateListOf<String>() }
         val context = LocalContext.current
-
-
         val lifecycleOwner = LocalLifecycleOwner.current
+        val systemUiController = rememberSystemUiController()
+
+        SideEffect {
+            systemUiController.setStatusBarColor(
+                color = Color.Black,
+                darkIcons = false
+            )
+        }
+
         DisposableEffect(lifecycleOwner) {
             val observer = LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_RESUME) {
@@ -108,39 +121,80 @@ class CategoriesScreenActivity : ComponentActivity() {
                 lifecycleOwner.lifecycle.removeObserver(observer)
             }
         }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
 
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(30.dp)
+                    .background(Color(0xFF5847AA))
+                    .align(Alignment.TopCenter)
+            )
             Column(
                 modifier = Modifier
-                    .padding(top = 30.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .fillMaxWidth()
+                    .padding(top = 30.dp + 16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(100.dp))
+                Text(
+                    text = "Minhas senhas",
+                    fontSize = 33.sp,
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
 
-                ) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(50.dp))
+                Text(
+                    text = "Categorias",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 25.sp,
+                    modifier = Modifier.align(Alignment.Start)
+                )
                 categorias.forEach { cat ->
                     expandableCard(cat)
                 }
-
             }
-            Button(
-                onClick = {
+
+            val context = LocalContext.current
+
+            val onFabClick = remember(context) {
+                {
                     val intent = Intent(context, CategoryActivity::class.java)
                     context.startActivity(intent)
-                },
+                }
+            }
+
+            Button(
+                onClick = onFabClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF5847AA)
+                ),
+                shape = CircleShape,
+                contentPadding = PaddingValues(0.dp),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .clip(RoundedCornerShape(90)),
-
-                ) {
-                Text("+")
+                    .offset(x = (-24).dp, y = (-48).dp)
+                    .size(64.dp)
+            ) {
+                Text("+", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             }
+
+
+
         }
     }
+
+
+
+
 
     @Composable
     fun expandableCard(categoria: String) {
@@ -149,6 +203,7 @@ class CategoriesScreenActivity : ComponentActivity() {
         val rotationState by animateFloatAsState(
             targetValue = if (expandedState) 180f else 0f
         )
+
         val senhas = remember { mutableStateListOf<ContaSenha>() }
 
 
@@ -165,6 +220,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                 lifecycleOwner.lifecycle.removeObserver(observer)
             }
         }
+
         Card(
             modifier = Modifier
 
