@@ -22,8 +22,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -31,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,6 +52,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,12 +60,10 @@ import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
 import br.edu.puc.superid.ui.theme.roxo
-import br.edu.puc.superid.ui.theme.roxoclaro
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
-import java.nio.file.Files.size
 
 private lateinit var auth: FirebaseAuth
 
@@ -74,6 +79,11 @@ class CategoriesScreenActivity : ComponentActivity() {
         }
     }
 
+
+    data class ContaSenha(
+        var login: String,
+        var senha: String
+    )
 
     @Composable
     fun CategoriaNaTela() {
@@ -126,7 +136,7 @@ class CategoriesScreenActivity : ComponentActivity() {
         val rotationState by animateFloatAsState(
             targetValue = if (expandedState) 180f else 0f
         )
-        val senhas = remember { mutableStateListOf<String>() }
+        val senhas = remember { mutableStateListOf<ContaSenha>() }
 
 
         LaunchedEffect(Unit) {
@@ -147,7 +157,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     expandedState = !expandedState // Alterna o estado ao clicar
                 },
             colors = CardDefaults.cardColors(
-                containerColor = roxoclaro,
+                containerColor = roxo,
             )
         ) {
             Column(
@@ -185,10 +195,12 @@ class CategoriesScreenActivity : ComponentActivity() {
 
                 if (expandedState) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    senhas.forEach { senha ->
-                        mostrarSenhas(senha)
-                        HorizontalDivider(Modifier.padding(horizontal = 33.dp),
-                            color = Color.LightGray)
+                    senhas.forEach { conta ->
+                        mostrarSenhas(conta, senhas)
+                        HorizontalDivider(
+                            Modifier.padding(horizontal = 33.dp),
+                            color = Color.LightGray
+                        )
                     }
 
                     TextButton(
@@ -197,10 +209,10 @@ class CategoriesScreenActivity : ComponentActivity() {
                             .fillMaxWidth()
                             .height(40.dp)
                             .background(
-                                color = roxoclaro,
+                                color = roxo,
 
 
-                            ),
+                                ),
 
                         onClick = {
                             val intent = Intent(context, PasswordActivity::class.java)
@@ -221,43 +233,100 @@ class CategoriesScreenActivity : ComponentActivity() {
         }
     }
 
-    @Preview
-    @Composable
-    fun previewCat(){
-        expandableCard("Teste")
-    }
 
     @Composable
     fun mostrarSenhas(
-        senha: String
+        conta: ContaSenha,
+        senhas: SnapshotStateList<ContaSenha>
+
+
     ) {
 
 
-        var text = senha
+        var text = conta.senha
         var textMasked = "*".repeat(text.length)
         var checked by remember { mutableStateOf(false) }
+        var alterarSenha by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
         ) {
-            Row(modifier = Modifier
-                .padding(horizontal = 30.dp),
-                verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 30.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     if (checked) text else textMasked,
                     modifier = Modifier
                         .weight(6f),
                     fontSize = 20.sp
                 )
+
                 IconButton(
                     modifier = Modifier
-                        .weight(8f),
+                        .weight(2f),
 
                     onClick = {
                         checked = !checked
                     }
 
                 ) {
-                    Icon(imageVector = Icons.Default.Lock, contentDescription = "Ver senha")
+                    Icon(imageVector = Icons.Filled.VisibilityOff, contentDescription = "Ver senha")
+                }
+                IconButton(
+                    modifier = Modifier
+                        .weight(2f),
+
+                    onClick = {
+                        alterarSenha = true
+                    }
+
+                )
+                {
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar senha")
+                }
+                IconButton(
+                    modifier = Modifier
+                        .weight(2f),
+
+                    onClick = {
+                        removerFirestoreSenha(
+                            conta.senha, conta.login,
+                            onSuccess = {
+                                senhas.remove(conta)
+                                Log.d("UI", "Senha deletada com sucesso")
+
+                            },
+                            onFailure = { e ->
+                                Log.e("UI", "Erro ao deletar senha: ${e.message}")
+                            })
+                    }
+
+                ) {
+                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Deletar senha")
+                }
+                if (alterarSenha) {
+                    ModalTextField(
+                        type = MessageType.PASSWORD,
+                        titulo = "Quer alterar esta senha?",
+                        mensagem = conta.login,
+                        textoBotao1 = "Alterar",
+                        textoBotao2 = "Cancelar",
+                        onConfirm = { novaSenha ->
+                            editarFirestoreSenha(
+                                conta.login, conta.senha, novaSenha,
+                                onSuccess = {
+                                    conta.senha = novaSenha
+                                    alterarSenha = false
+                                },
+                                onFailure = {
+                                    Log.e("Erro", "Falha ao editar senha")
+                                    alterarSenha = false
+                                }
+                            )
+                        },
+                        onDismiss = { alterarSenha = false }
+                    )
                 }
             }
 
@@ -265,7 +334,7 @@ class CategoriesScreenActivity : ComponentActivity() {
     }
 
 
-    fun senhasConta(senhas: SnapshotStateList<String>, categoria: String) {
+    fun senhasConta(senhas: SnapshotStateList<ContaSenha>, categoria: String) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
         val uid = user!!.uid
@@ -276,8 +345,10 @@ class CategoriesScreenActivity : ComponentActivity() {
             .addOnSuccessListener { result ->
                 for (document in result) {
                     val senha = document.getString("Senha")
-                    if (senha != null) {
-                        senhas.add(senha)
+                    val login = document.getString("Login")
+
+                    if (senha != null && login != null) {
+                        senhas.add(ContaSenha(login, senha))
                     }
                 }
             }
@@ -308,4 +379,156 @@ class CategoriesScreenActivity : ComponentActivity() {
             }
     }
 
+
+    fun removerFirestoreSenha(
+
+        senha: String,
+        login: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+
+    ) {
+        val db = Firebase.firestore
+        val user = Firebase.auth.currentUser
+        val uid = user!!.uid
+
+
+        db.collection("Usuario").document(uid).collection("senhas")
+            .whereEqualTo("Senha", senha)
+            .whereEqualTo("Login", login)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot) {
+                    document.reference.delete()
+                        .addOnSuccessListener {
+                            Log.d("Firestore", "Senha deletada com sucesso.")
+                            onSuccess()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.w("Firestore", "Erro ao deletar senha", e)
+                            onFailure(e)
+                        }
+                }
+
+
+            }
+            .addOnFailureListener { e ->
+                Log.w("Firestore", "Erro ao buscar a senha", e)
+                onFailure(e)
+            }
+    }
+
+    fun editarFirestoreSenha(
+        login: String,
+        senhaAntiga: String,
+        novaSenha: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        val db = Firebase.firestore
+        val user = Firebase.auth.currentUser ?: return
+        val uid = user.uid
+
+        db.collection("Usuario").document(uid).collection("senhas")
+            .whereEqualTo("Login", login)
+            .whereEqualTo("Senha", senhaAntiga)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot) {
+                    document.reference.update("Senha", novaSenha)
+                        .addOnSuccessListener {
+                            Log.d("Firestore", "Senha atualizada com sucesso")
+                            onSuccess()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("Firestore", "Erro ao atualizar senha", e)
+                            onFailure(e)
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Erro ao buscar senha para editar", e)
+                onFailure(e)
+            }
+    }
+
+    @Composable
+    fun ModalTextField(
+        type: MessageType,
+        titulo: String,
+        mensagem: String,
+        textoBotao1: String,
+        textoBotao2: String,
+        onConfirm: (String) -> Unit,
+        onDismiss: () -> Unit = {}
+    ) {
+        var password by remember { mutableStateOf("") }
+
+        AlertDialog(
+            onDismissRequest = onDismiss,
+
+            title = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = titulo)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = mensagem,
+                        modifier = Modifier
+                            .padding(bottom = 16.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                    if (type == MessageType.PASSWORD) {
+                        TextField(
+                            modifier = Modifier
+                                .padding(vertical = 10.dp, horizontal = 12.dp)
+                                .fillMaxWidth(),
+                            value = password,
+                            onValueChange = { password = it },
+                            label = { Text("Nova Senha") },
+                            visualTransformation = PasswordVisualTransformation()
+                        )
+                    }
+
+                }
+            },
+            confirmButton = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+
+                    ) {
+                    Button(
+                        modifier = Modifier.weight(2f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xff000000)
+                        ), onClick = { onConfirm(password) }) {
+                        Text(text = textoBotao1)
+                    }
+                    Button(
+                        modifier = Modifier.weight(2f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xff000000)
+                        ), onClick = { onDismiss()}) {
+                        Text(text = textoBotao2)
+                    }
+                }
+
+            }
+        )
+    }
 }
+
+
+
+

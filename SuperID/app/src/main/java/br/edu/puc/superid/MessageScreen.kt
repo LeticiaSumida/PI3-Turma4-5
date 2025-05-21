@@ -165,6 +165,17 @@ fun ModalTextField(type: MessageType,
                             label = { Text("Senha Mestre") } ,
                             visualTransformation = PasswordVisualTransformation()
                         )
+                        Button(
+                            onClick = { esqueciSenha(email2) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xff000000)
+                            ),
+                            modifier = Modifier
+                                .padding(vertical = 4.dp)
+                                .align(Alignment.CenterHorizontally)
+                        ) {
+                            Text(text = textoBotao1)
+                        }
                     }
                     MessageType.EMAIL ->{
                         TextField(
