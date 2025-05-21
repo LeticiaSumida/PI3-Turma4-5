@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -57,6 +58,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
 import br.edu.puc.superid.ui.theme.roxo
@@ -92,8 +96,18 @@ class CategoriesScreenActivity : ComponentActivity() {
 
 
 
-        LaunchedEffect(Unit) {
-            CategoriasConta(categorias)
+        val lifecycleOwner = LocalLifecycleOwner.current
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    categorias.clear()
+                    CategoriasConta(categorias)
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
         }
         Box(
             modifier = Modifier
@@ -139,8 +153,18 @@ class CategoriesScreenActivity : ComponentActivity() {
         val senhas = remember { mutableStateListOf<ContaSenha>() }
 
 
-        LaunchedEffect(Unit) {
-            senhasConta(senhas, categoria)
+        val lifecycleOwner = LocalLifecycleOwner.current
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    senhas.clear()
+                    senhasConta(senhas, categoria)
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
         }
         Card(
             modifier = Modifier
