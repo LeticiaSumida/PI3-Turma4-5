@@ -2,24 +2,26 @@ package br.edu.puc.superid.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.R
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -35,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,13 +58,18 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AnimatedContent(
-            targetState = paginas[paginaAtual],
+            targetState = paginaAtual,
             transitionSpec = {
-                (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(
-                    slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut())
-            },
-            label = "Transição de Página"
-        ) { pagina ->
+                if (targetState > initialState) {
+                    slideInHorizontally { width -> width } + fadeIn() with
+                            slideOutHorizontally { width -> -width } + fadeOut()
+                } else {
+                    slideInHorizontally { width -> -width } + fadeIn() with
+                            slideOutHorizontally { width -> width } + fadeOut()
+                }.using(SizeTransform(clip = false))
+            }
+        ) { index ->
+            val pagina = paginas[index]
             when (pagina) {
                 "welcome" -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -74,6 +82,8 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                         Text(
                             "Lorem ipsum dolor sit amet. Rem erf rfrfr numquam commodi 33 temporibus voluptas non Quis voluptates. Et nihil quaerat non natus illum hic expedita numquam ut accusamus beatae.",
                             fontSize = 18.sp,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -89,6 +99,8 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                         Text(
                             "Lorem ipsum dolor sit amet. Rem erf rfrfr numquam commodi 33 temporibus voluptas non Quis voluptates. Et nihil quaerat non natus illum hic expedita numquam ut accusamus beatae.",
                             fontSize = 18.sp,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -104,6 +116,8 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                         Text(
                             "Lorem ipsum dolor sit amet. Rem erf rfrfr numquam commodi 33 temporibus voluptas non Quis voluptates. Et nihil quaerat non natus illum hic expedita numquam ut accusamus beatae.",
                             fontSize = 18.sp,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -119,6 +133,8 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                                     "O usuário concorda em nao utilizar o SuperID para atividades ilegais ou que violem direitos de terceiros.\n\n" +
                                     "Ao prosseguir, voce confirma que leu, compreendeu e aceita integralmente os termos de uso.\n",
                             fontSize = 18.sp,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(checked = aceitouTermos, onCheckedChange = { aceitouTermos = it })
@@ -129,36 +145,47 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
             }
         }
 
-        Row (
+        Row(
             modifier = Modifier
-                .align(Alignment.End)
-                .padding(bottom = 25.dp)
-            ){
-            if(paginas[paginaAtual] != "welcome") {
-                Button(
-                    onClick = {
-                        if (paginaAtual <= paginas.lastIndex) {
-                            paginaAtual--
-                        }
-                    },
-                ) {
+                .fillMaxWidth()
+                .padding(bottom = 25.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            if (paginaAtual != 0) {
+                Button(onClick = {
+                    if (paginaAtual > 0) paginaAtual--
+                }) {
                     Text("Voltar")
                 }
+            } else {
+                Spacer(modifier = Modifier.width(80.dp))
             }
-            /*Spacer(modifier = Modifier.padding(horizontal = 10.dp))
-            repeat(paginas.indexOf(String())) { index ->
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(if (paginaAtual == index) Color.Black else Color.Gray)
-                        .clickable { paginaAtual.scrollToPage(index) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("t")
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(paginas.size) { index ->
+                    val isSelected = paginaAtual == index
+                    val animatedSize by animateDpAsState(targetValue = if (isSelected) 14.dp else 10.dp)
+                    val animatedColor by animateColorAsState(
+                        targetValue = if (isSelected) Color.Black else Color.LightGray
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(animatedSize)
+                            .clip(CircleShape)
+                            .background(animatedColor)
+                    )
+
+                    if (index != paginas.lastIndex) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                    }
                 }
-            }*/
-            Spacer(modifier = Modifier.padding(horizontal = 87.dp))
+            }
+
             Button(
                 onClick = {
                     if (paginaAtual < paginas.lastIndex) {
@@ -172,7 +199,6 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                 Text(if (paginaAtual == paginas.lastIndex) "Finalizar" else "Próximo")
             }
         }
-
     }
 }
 
