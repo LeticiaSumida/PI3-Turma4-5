@@ -1,4 +1,4 @@
-package br.edu.puc.superid
+package br.edu.puc.superid.ui
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.edu.puc.superid.R
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import androidx.compose.runtime.mutableStateOf
@@ -47,7 +48,7 @@ fun MessageDialog(
                     MessageType.SUCCESS -> R.drawable.check
                     MessageType.ERROR -> R.drawable.erro
                     MessageType.EMAIL -> R.drawable.email
-                    else -> R.drawable.check
+                    else -> R.drawable.imagem_default
                 }
                 Image(
                     painter = painterResource(id = imageRes),
