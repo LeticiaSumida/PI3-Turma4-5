@@ -172,18 +172,12 @@ class SignInActivity : ComponentActivity() {
 
                         isLoading = true
 
-                        verificarCredenciais(email, senha) { credenciaisValidas ->
+                        loginAuth(email, senha) { login ->
                             isLoading = false
-                            if (credenciaisValidas) {
-                                loginAuth(email, senha) { login ->
-                                    if (login) {
-                                        val intent = Intent(context, MainActivity::class.java)
-                                        context.startActivity(intent)
-                                        finish()
-                                    } else {
-                                        erroMensagem = "Erro na autenticação."
-                                    }
-                                }
+                            if (login) {
+                                val intent = Intent(context, MainActivity::class.java)
+                                context.startActivity(intent)
+                                finish()
                             } else {
                                 erroMensagem = "Email ou senha incorretos."
                             }
@@ -210,7 +204,6 @@ class SignInActivity : ComponentActivity() {
         }
     }
 
-
     fun isValidEmail(email: String?): Boolean {
         if (email == null) return false
 
@@ -218,30 +211,6 @@ class SignInActivity : ComponentActivity() {
             "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
         val pattern = Regex(EMAIL_PATTERN)
         return pattern.matches(email)
-    }
-
-    fun verificarCredenciais(email: String, senha: String, callback: (Boolean) -> Unit) {
-        val db = Firebase.firestore
-
-        db.collection("Usuario")
-            .whereEqualTo("email", email)
-            .get()
-            .addOnSuccessListener { result ->
-                if (!result.isEmpty) {
-                    val doc = result.documents[0]
-                    val senhaHash = doc.getString("senha")
-                    if (senhaHash != null && BCrypt.checkpw(senha, senhaHash)) {
-                        callback(true)
-                    } else {
-                        callback(false)
-                    }
-                } else {
-                    callback(false)
-                }
-            }
-            .addOnFailureListener {
-                callback(false)
-            }
     }
 
     fun loginAuth(email: String, senha: String, onResult: (Boolean) -> Unit) {
@@ -256,8 +225,4 @@ class SignInActivity : ComponentActivity() {
             }
         }
     }
-
-
-
-
 }
