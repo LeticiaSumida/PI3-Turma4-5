@@ -9,6 +9,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import br.edu.puc.superid.R
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @Composable
 fun MessageDialog(
@@ -92,6 +96,7 @@ fun MessageDialog(
         dismissButton = {}
     )
 }
+
 enum class MessageType {
     SUCCESS,
     ERROR,
@@ -106,7 +111,7 @@ fun PreviewMessageDialogSuccess() {
         type = MessageType.EMAIL,
         titulo = "Cadastro realizado com sucesso !!",
         mensagem = "Enviamos um email de verificação para você \n" +
-        "Verifique sua caixa de entrada e clique no link para validar sua conta.",
+                "Verifique sua caixa de entrada e clique no link para validar sua conta.",
         caminhoBotao1 = {},
         caminhoBotao2 = {},
         textoBotao1 = "Ir para o login",
@@ -115,14 +120,15 @@ fun PreviewMessageDialogSuccess() {
 }
 
 @Composable
-fun ModalTextField(type: MessageType,
-                   titulo: String,
-                   mensagem: String,
-
-                   caminhoBotao2: () -> Unit,
-                   textoBotao1: String,
-                   textoBotao2: String,
-                   onDismiss: () -> Unit = {}) {
+fun ModalTextField(
+    type: MessageType,
+    titulo: String,
+    mensagem: String,
+    caminhoBotao2: () -> Unit,
+    textoBotao1: String,
+    textoBotao2: String,
+    onDismiss: () -> Unit = {}
+) {
 
     var (email2, setEmail) = androidx.compose.runtime.remember {
         androidx.compose.runtime.mutableStateOf("")
@@ -130,6 +136,7 @@ fun ModalTextField(type: MessageType,
     var (password, setPassword) = androidx.compose.runtime.remember {
         androidx.compose.runtime.mutableStateOf("")
     }
+    var isLoading by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -163,11 +170,12 @@ fun ModalTextField(type: MessageType,
                                 .fillMaxWidth(),
                             value = password,
                             onValueChange = setPassword,
-                            label = { Text("Senha Mestre") } ,
+                            label = { Text("Senha Mestre") },
                             visualTransformation = PasswordVisualTransformation()
                         )
                     }
-                    MessageType.EMAIL ->{
+
+                    MessageType.EMAIL -> {
                         TextField(
                             modifier = Modifier
                                 .padding(vertical = 10.dp, horizontal = 12.dp)
@@ -177,9 +185,14 @@ fun ModalTextField(type: MessageType,
                             label = { Text("Email") }
                         )
                         Button(
-                            onClick = { esqueciSenha(email2) },
+                            onClick = {
+                                isLoading = true
+                                esqueciSenha(email2) { success ->
+                                    isLoading = false
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xff000000)
+                                containerColor = Color(0xff000000)
                             ),
                             modifier = Modifier
                                 .padding(vertical = 4.dp)
@@ -189,8 +202,9 @@ fun ModalTextField(type: MessageType,
                         }
                     }
 
-
-                    else -> {Text("")}
+                    else -> {
+                        Text("")
+                    }
                 }
 
 
@@ -212,16 +226,16 @@ fun ModalTextField(type: MessageType,
     )
 }
 
-fun esqueciSenha(email:String){
+fun esqueciSenha(email: String, onComplete: (Boolean) -> Unit) {
     val TAG = "EsqueciSenha"
     Firebase.auth.sendPasswordResetEmail(email)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                Log.d(TAG,"Email enviado.")
-
-            }
-            else{
-                Log.w(TAG,"Email inválido")
+                Log.d(TAG, "Email enviado.")
+                onComplete(true)
+            } else {
+                Log.w(TAG, "Email inválido")
+                onComplete(true)
             }
         }
 }

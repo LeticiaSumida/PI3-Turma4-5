@@ -185,7 +185,7 @@ class SignUpActivity : ComponentActivity() {
                                 addAuth(email, senha) { sucessoAuth ->
                                     if (sucessoAuth) {
                                         val uid = auth.currentUser?.uid ?: ""
-                                        addFirestore(nome, email, senha, uid)
+                                        addFirestore(nome, email, uid)
                                         isLoading = false
                                         Log.d(TAG, "Usuário criado com sucesso")
                                         showSuccessDialog = true
@@ -263,14 +263,12 @@ class SignUpActivity : ComponentActivity() {
             }
     }
 
-    fun addFirestore(nome: String, email: String, senha: String, uid: String) {
+    fun addFirestore(nome: String, email: String, uid: String) {
         val db = Firebase.firestore
-        val senhaCrypto = hashPassword(senha)
 
         val user = hashMapOf(
             "nome" to nome,
             "email" to email,
-            "senha" to senhaCrypto,
             "uid" to uid,
         )
 
