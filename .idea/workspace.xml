@@ -17,13 +17,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="17242bf7-3c08-45c3-bdb1-8ba03a39aa23" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/PI3-Turma4-5.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SuperID/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/SuperID/app/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SuperID/app/src/main/java/br/edu/puc/superid/CategoriesScreenActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/SuperID/app/src/main/java/br/edu/puc/superid/CategoriesScreenActivity.kt" afterDir="false" />
@@ -36,7 +29,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\Desktop\.android\avd\Pixel_9.avd)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\Desktop\.android\avd\Medium_Phone.avd)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -303,6 +296,16 @@
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
       <map>
+        <entry key="br.edu.puc.superid">
+          <value>
+            <CheckInfo lastCheckTimestamp="1747864723005" />
+          </value>
+        </entry>
+        <entry key="br.edu.puc.superid.test">
+          <value>
+            <CheckInfo lastCheckTimestamp="1747864723000" />
+          </value>
+        </entry>
         <entry key="com.example.myapplication">
           <value>
             <CheckInfo lastCheckTimestamp="1745527813121" />
