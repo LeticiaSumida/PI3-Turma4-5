@@ -175,9 +175,9 @@ class SignInActivity : ComponentActivity() {
                         loginAuth(email, senha) { login ->
                             isLoading = false
                             if (login) {
-                                val intent = Intent(context, MainActivity::class.java)
-                                context.startActivity(intent)
-                                finish()
+                                setContent {
+                                    HomePage()
+                                }
                             } else {
                                 erroMensagem = "Email ou senha incorretos."
                             }
