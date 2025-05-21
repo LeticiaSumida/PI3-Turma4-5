@@ -48,7 +48,7 @@ fun MessageDialog(
                     MessageType.SUCCESS -> R.drawable.check
                     MessageType.ERROR -> R.drawable.erro
                     MessageType.EMAIL -> R.drawable.email
-                    else -> R.drawable.aaaaaa
+                    else -> R.drawable.imagem_default
                 }
                 Image(
                     painter = painterResource(id = imageRes),

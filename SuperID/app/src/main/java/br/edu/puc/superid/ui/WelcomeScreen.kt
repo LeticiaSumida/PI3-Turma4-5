@@ -74,7 +74,7 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                 "welcome" -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(
-                            painter = painterResource(id = br.edu.puc.superid.R.drawable.aaaaaa),
+                            painter = painterResource(id = br.edu.puc.superid.R.drawable.imagem_default),
                             contentDescription = null,
                             modifier = Modifier.size(300.dp)
                         )
@@ -91,7 +91,7 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                 "passo1" -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(
-                            painter = painterResource(id = br.edu.puc.superid.R.drawable.aaaaaa),
+                            painter = painterResource(id = br.edu.puc.superid.R.drawable.imagem_default),
                             contentDescription = null,
                             modifier = Modifier.size(300.dp).padding(16.dp)
                         )
@@ -108,7 +108,7 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                 "passo2" -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(
-                            painter = painterResource(id = br.edu.puc.superid.R.drawable.aaaaaa),
+                            painter = painterResource(id = br.edu.puc.superid.R.drawable.imagem_default),
                             contentDescription = null,
                             modifier = Modifier.size(300.dp).padding(16.dp)
                         )
