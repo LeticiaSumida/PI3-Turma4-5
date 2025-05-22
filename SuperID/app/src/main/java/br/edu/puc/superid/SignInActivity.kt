@@ -20,15 +20,21 @@ import androidx.activity.ComponentActivity
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import android.util.Log
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.auth
@@ -42,6 +48,7 @@ import br.edu.puc.superid.ModalTextField
 import com.google.firebase.auth.FirebaseAuth
 import org.mindrot.jbcrypt.BCrypt
 import br.edu.puc.superid.ui.theme.roxo
+import br.edu.puc.superid.ui.theme.roxoclaro
 
 private val TAG = "SignInActivityLOG"
 
@@ -64,6 +71,27 @@ class SignInActivity : ComponentActivity() {
         val context = LocalContext.current
         var esqueciSenhaModal by remember { mutableStateOf(false) }
 
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(roxoclaro, roxo) // Gradiente roxo escuro
+                    )
+                )
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.4f),
+                    radius = size.minDimension / 1.7f,
+                    center = Offset(x = size.width * 0.2f, y = size.height * 0.2f)
+                )
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.5f),
+                    radius = size.minDimension / 1.5f,
+                    center = Offset(x = size.width * 0.7f, y = size.height * 0.9f)
+                )
+            }}
 
         Column(
             modifier = Modifier
