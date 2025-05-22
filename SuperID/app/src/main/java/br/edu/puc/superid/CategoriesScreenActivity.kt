@@ -5,12 +5,24 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,29 +34,38 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,14 +74,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -69,12 +89,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
 import br.edu.puc.superid.ui.theme.roxo
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import androidx.compose.runtime.SideEffect
 
 private lateinit var auth: FirebaseAuth
 
@@ -84,7 +103,14 @@ class CategoriesScreenActivity : ComponentActivity() {
         auth = Firebase.auth
         setContent {
             SuperIdTheme {
-                CategoriaNaTela()
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ){
+                val scrollState = rememberScrollState()
+                CategoriaNaTela(scrollState)
+                }
+
 
             }
         }
@@ -95,12 +121,30 @@ class CategoriesScreenActivity : ComponentActivity() {
         var login: String,
         var senha: String
     )
+    data class FabButtonItens(
+        val icon: ImageVector,
+        val title: String
+
+    )
+
+
+
+
+
     @Composable
-    fun CategoriaNaTela() {
+    fun CategoriaNaTela(scrollState: ScrollState) {
         val categorias = remember { mutableStateListOf<String>() }
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
         val systemUiController = rememberSystemUiController()
+        var expanded by remember {mutableStateOf(false)}
+        val items = listOf(
+            FabButtonItens(Icons.Filled.Lock, "Nova senha"),
+            FabButtonItens(Icons.Filled.Add, "Nova categoria")
+        )
+
+
+
 
         SideEffect {
             systemUiController.setStatusBarColor(
@@ -125,6 +169,7 @@ class CategoriesScreenActivity : ComponentActivity() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(16.dp)
 
         ) {
@@ -163,34 +208,76 @@ class CategoriesScreenActivity : ComponentActivity() {
                 }
             }
 
-            val context = LocalContext.current
+            val transition = updateTransition(targetState = expanded, label = "transition")
+            val rotation by transition.animateFloat (label = "rotation") { if (it) 315f else 0f }
 
-            val onFabClick = remember(context) {
-                {
-                    val intent = Intent(context, CategoryActivity::class.java)
-                    context.startActivity(intent)
+
+
+            FloatingActionButton(
+                onClick = {expanded = !expanded},
+
+
+
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .offset(x = (-24).dp, y = (-50).dp)
+                    .size(64.dp)
+                    .rotate(rotation),
+            ) {
+                Icon(Icons.Filled.Add, "Floating action button.")
+            }
+
+
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = fadeIn() + slideInVertically { fullHeight -> fullHeight / 3 } + scaleIn(),
+                    exit = fadeOut() + slideOutVertically { fullHeight -> fullHeight / 3  } + scaleOut(),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .offset( y = (-130).dp)
+                        .padding(vertical = 2.dp)
+                        .padding(end = 20.dp)
+                ) {
+                Column(
+                    modifier = Modifier
+                ) {
+
+                    ExtendedFloatingActionButton(
+                        modifier = Modifier
+                            .padding(start = 10.dp),
+                        onClick = {
+                            val intent = Intent(context, CategoryActivity::class.java)
+                            context.startActivity(intent)
+                        }
+
+                    ) {
+                        Text("Nova categoria")
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    ExtendedFloatingActionButton(
+                        modifier = Modifier
+                            .padding(start = 30.dp),
+                        onClick = {
+                            val intent = Intent(context, PasswordActivity::class.java)
+                            context.startActivity(intent)
+                        }
+
+                    ) {
+                            Text("Nova senha")
+                    }
+
+
+
+
                 }
             }
 
-            Button(
-                onClick = onFabClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF5847AA)
-                ),
-                shape = CircleShape,
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .offset(x = (-24).dp, y = (-48).dp)
-                    .size(64.dp)
-            ) {
-                Text("+", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-            }
-
-
-
         }
+
     }
+
+
 
 
 
@@ -199,7 +286,7 @@ class CategoriesScreenActivity : ComponentActivity() {
     @Composable
     fun expandableCard(categoria: String) {
         val context = LocalContext.current
-        var expandedState by remember { mutableStateOf(true) }
+        var expandedState by remember { mutableStateOf(false) }
         val rotationState by animateFloatAsState(
             targetValue = if (expandedState) 180f else 0f
         )
@@ -281,31 +368,6 @@ class CategoriesScreenActivity : ComponentActivity() {
                             color = Color.LightGray
                         )
                     }
-
-                    TextButton(
-                        modifier = Modifier
-                            .padding(vertical = 8.dp)
-                            .fillMaxWidth()
-                            .height(40.dp)
-                            .background(
-                                color = roxo,
-
-
-                                ),
-
-                        onClick = {
-                            val intent = Intent(context, PasswordActivity::class.java)
-                            context.startActivity(intent)
-                        }
-                    ) {
-                        Text(
-                            "+ Adicionar Senha",
-
-                            color = branco,
-                            fontWeight = FontWeight.W600
-
-                        )
-                    }
                 }
             }
 
@@ -321,29 +383,41 @@ class CategoriesScreenActivity : ComponentActivity() {
 
     ) {
 
-
+        var textlogin = conta.login
         var text = conta.senha
         var textMasked = "*".repeat(text.length)
         var checked by remember { mutableStateOf(false) }
         var alterarSenha by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
+                .padding(3.dp)
         ) {
             Row(
                 modifier = Modifier
                     .padding(horizontal = 30.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    if (checked) text else textMasked,
-                    modifier = Modifier
-                        .weight(6f),
-                    fontSize = 20.sp
-                )
+                Column(modifier = Modifier.weight(5f)){
+                    Text(
+                        if (checked) text else textMasked,
+                        modifier = Modifier,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 18.sp
+                    )
+                    Text(
+                        textlogin,
+                        modifier = Modifier,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 13.sp
+                    )
+                }
+
 
                 IconButton(
-                    modifier = Modifier
-                        .weight(2f),
+                    modifier = Modifier,
+
 
                     onClick = {
                         checked = !checked
@@ -353,8 +427,8 @@ class CategoriesScreenActivity : ComponentActivity() {
                     Icon(imageVector = Icons.Filled.VisibilityOff, contentDescription = "Ver senha")
                 }
                 IconButton(
-                    modifier = Modifier
-                        .weight(2f),
+                    modifier = Modifier,
+
 
                     onClick = {
                         alterarSenha = true
@@ -365,8 +439,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar senha")
                 }
                 IconButton(
-                    modifier = Modifier
-                        .weight(2f),
+                    modifier = Modifier,
 
                     onClick = {
                         removerFirestoreSenha(
