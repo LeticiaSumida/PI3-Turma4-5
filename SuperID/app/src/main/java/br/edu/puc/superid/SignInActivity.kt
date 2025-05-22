@@ -2,53 +2,56 @@ package br.edu.puc.superid
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import br.edu.puc.superid.ui.theme.SuperIdTheme
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.activity.ComponentActivity
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.sp
-import com.google.firebase.auth.auth
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
-import br.edu.puc.superid.ModalTextField
-import com.google.firebase.auth.FirebaseAuth
-import org.mindrot.jbcrypt.BCrypt
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import br.edu.puc.superid.ui.HomePage
+import br.edu.puc.superid.ui.MessageType
+import br.edu.puc.superid.ui.ModalTextField
+import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.roxo
 import br.edu.puc.superid.ui.theme.roxoclaro
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 
 private val TAG = "SignInActivityLOG"
 
@@ -70,6 +73,7 @@ class SignInActivity : ComponentActivity() {
         var isLoading by remember { mutableStateOf(false) }
         val context = LocalContext.current
         var esqueciSenhaModal by remember { mutableStateOf(false) }
+        var senhaVisibilidade by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -129,10 +133,25 @@ class SignInActivity : ComponentActivity() {
                     .fillMaxWidth(),
                 value = senha,
                 onValueChange = { senha = it },
-                label = { Text("Senha") },
-                visualTransformation = PasswordVisualTransformation()
+                label = { Text("Senha Mestre") },
+                visualTransformation = if (senhaVisibilidade) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (senhaVisibilidade)
+                        Icons.Default.Visibility
+                    else
+                        Icons.Default.VisibilityOff
+
+                    IconButton(onClick = { senhaVisibilidade = !senhaVisibilidade }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                }
             )
 
+            Text("Esqueci minha senha",
+            modifier = Modifier.clickable(
+                onClick = { esqueciSenhaModal = true
+                    }
+            ))
             if (erroMensagem != null) {
                 Text(
                     text = erroMensagem!!,
@@ -169,16 +188,11 @@ class SignInActivity : ComponentActivity() {
 
                         isLoading = true
 
-                        verificarCredenciais(email, senha) { credenciaisValidas ->
+                        loginAuth(email, senha) { login ->
                             isLoading = false
-                            if (credenciaisValidas) {
-                                loginAuth(email, senha) { login ->
-                                    if (login) {
-                                        val intent = Intent(context, CategoriesScreenActivity::class.java)
-                                        context.startActivity(intent)
-                                    } else {
-                                        erroMensagem = "Erro na autenticação."
-                                    }
+                            if (login) {
+                                setContent {
+                                    HomePage()
                                 }
                             } else {
                                 erroMensagem = "Email ou senha incorretos."
@@ -228,6 +242,15 @@ class SignInActivity : ComponentActivity() {
                     }
                 }
             }
+
+            Text("Ainda não tem conta? Cadastre-se",
+                modifier = Modifier.clickable(
+                    onClick = {
+                        val intent = Intent(context, SignUpActivity::class.java)
+                        context.startActivity(intent)
+                        finish()
+                    }
+                ))
         }
     }
 
@@ -247,11 +270,7 @@ class SignInActivity : ComponentActivity() {
         }
     }
 
-    @Preview
-    @Composable
-    fun previewtelalogin(){
-        TelaLogin()
-    }
+
 
     fun isValidEmail(email: String?): Boolean {
         if (email == null) return false
@@ -260,30 +279,6 @@ class SignInActivity : ComponentActivity() {
             "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
         val pattern = Regex(EMAIL_PATTERN)
         return pattern.matches(email)
-    }
-
-    fun verificarCredenciais(email: String, senha: String, callback: (Boolean) -> Unit) {
-        val db = Firebase.firestore
-
-        db.collection("Usuario")
-            .whereEqualTo("email", email)
-            .get()
-            .addOnSuccessListener { result ->
-                if (!result.isEmpty) {
-                    val doc = result.documents[0]
-                    val senhaHash = doc.getString("senha")
-                    if (senhaHash != null && BCrypt.checkpw(senha, senhaHash)) {
-                        callback(true)
-                    } else {
-                        callback(false)
-                    }
-                } else {
-                    callback(false)
-                }
-            }
-            .addOnFailureListener {
-                callback(false)
-            }
     }
 
     fun loginAuth(email: String, senha: String, onResult: (Boolean) -> Unit) {
@@ -298,8 +293,4 @@ class SignInActivity : ComponentActivity() {
             }
         }
     }
-
-
-
-
 }

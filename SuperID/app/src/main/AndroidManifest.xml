@@ -7,7 +7,7 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="SuperID"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.superid"
@@ -16,16 +16,10 @@
             android:name=".PasswordActivity"
             android:exported="false" />
         <activity
-            android:name=".TesteAcordionActivity"
-            android:exported="false" />
-        <activity
             android:name=".CategoriesScreenActivity"
             android:exported="false" />
         <activity
             android:name=".CategoryActivity"
-            android:exported="false" />
-        <activity
-            android:name=".EmailActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
@@ -35,8 +29,15 @@
             android:exported="false" />
         <activity
             android:name=".SignUpActivity"
-            android:exported="false" />
-        <activity
+            android:exported="true"
+            android:theme="@style/Theme.superid">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!--<activity
             android:name=".WelcomeActivity"
             android:exported="true"
             android:label="@string/app_name"
@@ -46,7 +47,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity>-->
     </application>
 
 </manifest>

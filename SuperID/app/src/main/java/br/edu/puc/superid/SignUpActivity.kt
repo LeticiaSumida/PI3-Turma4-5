@@ -20,11 +20,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.activity.ComponentActivity
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+import android.util.Log
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.auth
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +52,11 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import androidx.compose.ui.text.input.VisualTransformation
+import br.edu.puc.superid.ui.MessageDialog
+import br.edu.puc.superid.ui.MessageType
+import br.edu.puc.superid.ui.WelcomeCarousel
+import com.google.firebase.FirebaseApp
 import org.mindrot.jbcrypt.BCrypt
 
 private lateinit var auth: FirebaseAuth
@@ -41,10 +65,25 @@ private const val TAG = "SignUpActivityLOG"
 class SignUpActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         auth = Firebase.auth
+        val prefs = getSharedPreferences("tutorial_prefs", MODE_PRIVATE)
+        val tutorialVisto = prefs.getBoolean("tutorial_visto", false)
+
+        enableEdgeToEdge()
         setContent {
             SuperIdTheme {
-                TelaCadastro()
+                var telaAtual by remember { mutableStateOf(if (tutorialVisto) "home" else "tutorial") }
+
+                when (telaAtual) {
+                    "tutorial" -> WelcomeCarousel(
+                        onAceitar = {
+                            prefs.edit().putBoolean("tutorial_visto", true).apply()
+                            telaAtual = "home"
+                        }
+                    )
+                    "home" -> TelaCadastro()
+                }
             }
         }
     }
@@ -57,6 +96,7 @@ class SignUpActivity : ComponentActivity() {
         var erroMensagem by remember { mutableStateOf<String?>(null) }
         var isLoading by remember { mutableStateOf(false) }
         var showSuccessDialog by remember { mutableStateOf(false) }
+        var senhaVisibilidade by remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier
@@ -102,7 +142,17 @@ class SignUpActivity : ComponentActivity() {
                 value = senha,
                 onValueChange = { senha = it },
                 label = { Text("Senha Mestre") },
-                visualTransformation = PasswordVisualTransformation()
+                visualTransformation = if (senhaVisibilidade) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (senhaVisibilidade)
+                        Icons.Default.Visibility
+                    else
+                        Icons.Default.VisibilityOff
+
+                    IconButton(onClick = { senhaVisibilidade = !senhaVisibilidade }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                }
 
             )
 
@@ -147,7 +197,7 @@ class SignUpActivity : ComponentActivity() {
                                 addAuth(email, senha) { sucessoAuth ->
                                     if (sucessoAuth) {
                                         val uid = auth.currentUser?.uid ?: ""
-                                        addFirestore(nome, email, senha, uid)
+                                        addFirestore(nome, email, uid)
                                         isLoading = false
                                         Log.d(TAG, "Usuário criado com sucesso")
                                         showSuccessDialog = true
@@ -166,6 +216,17 @@ class SignUpActivity : ComponentActivity() {
                     Text("Cadastrar")
                 }
             }
+
+            Text("Já tem uma conta? Faça Login",
+                modifier = Modifier.clickable(
+                    onClick = {
+                        val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+
+                ))
+
             if (showSuccessDialog) {
                 MessageDialog(
                     type = MessageType.SUCCESS,
@@ -214,15 +275,13 @@ class SignUpActivity : ComponentActivity() {
             }
     }
 
-    fun addFirestore(nome: String, email: String, senha: String, uid: String) {
+    fun addFirestore(nome: String, email: String, uid: String) {
         val db = Firebase.firestore
-        val senhaCrypto = hashPassword(senha)
         val usuario = FirebaseAuth.getInstance().currentUser
 
         val user = hashMapOf(
             "nome" to nome,
             "email" to email,
-            "senha" to senhaCrypto,
             "uid" to uid,
             "emailVerificado" to usuario?.isEmailVerified
         )
