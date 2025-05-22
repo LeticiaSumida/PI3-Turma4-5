@@ -217,12 +217,14 @@ class SignUpActivity : ComponentActivity() {
     fun addFirestore(nome: String, email: String, senha: String, uid: String) {
         val db = Firebase.firestore
         val senhaCrypto = hashPassword(senha)
+        val usuario = FirebaseAuth.getInstance().currentUser
 
         val user = hashMapOf(
             "nome" to nome,
             "email" to email,
             "senha" to senhaCrypto,
             "uid" to uid,
+            "emailVerificado" to usuario?.isEmailVerified
         )
 
         db.collection("Usuario")

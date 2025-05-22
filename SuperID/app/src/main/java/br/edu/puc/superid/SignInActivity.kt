@@ -156,6 +156,18 @@ class SignInActivity : ComponentActivity() {
                                 erroMensagem = "Email ou senha incorretos."
                             }
                         }
+                        checarVerificacao{verificado, erro ->
+                            if(erro != null){
+                                Log.d(TAG, "Erro ao verificar email $erro")
+                            } else {
+                                if(verificado){
+                                    Log.d(TAG, "Email esta verificado")
+                                }
+                                else{
+                                    Log.d(TAG, "Email nao esta verificado")
+                                }
+                            }
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -188,6 +200,22 @@ class SignInActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    fun checarVerificacao(callback: (Boolean, String?) -> Unit){
+        val user = FirebaseAuth.getInstance().currentUser
+
+        if (user != null) {
+            user.reload().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(user.isEmailVerified, null)
+                } else {
+                    callback(false, task.exception?.message)
+                }
+            }
+        } else {
+            callback(false, "Usuário não autenticado")
         }
     }
 

@@ -18,7 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 
+private val TAG = "MODALSCREEN"
 @Composable
 fun MessageDialog(
     type: MessageType,
@@ -166,7 +168,7 @@ fun ModalTextField(type: MessageType,
                             visualTransformation = PasswordVisualTransformation()
                         )
                         Button(
-                            onClick = { esqueciSenha(email2) },
+                            onClick = { /*TODO*/},
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xff000000)
                             ),
@@ -187,7 +189,12 @@ fun ModalTextField(type: MessageType,
                             label = { Text("Email") }
                         )
                         Button(
-                            onClick = { esqueciSenha(email2) },
+                            onClick = {
+                                if(isValidEmail(email2)){
+                                    esqueciSenha(email2) }
+                                else{
+                                    Log.d(TAG, "Formato invalido")
+                                }},
                             colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xff000000)
                             ),
@@ -198,6 +205,7 @@ fun ModalTextField(type: MessageType,
                             Text(text = textoBotao1)
                         }
                     }
+
 
 
                     else -> {Text("")}
@@ -222,16 +230,37 @@ fun ModalTextField(type: MessageType,
     )
 }
 
+
 fun esqueciSenha(email:String){
     val TAG = "EsqueciSenha"
-    Firebase.auth.sendPasswordResetEmail(email)
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Log.d(TAG,"Email enviado.")
+    val db = Firebase.firestore
 
+    db.collection("Usuario")
+        .whereEqualTo("email", email)
+        .get()
+        .addOnSuccessListener { result ->
+                if (!result.isEmpty) {
+                    Firebase.auth.sendPasswordResetEmail(email)
+                        .addOnSuccessListener { Log.d(TAG,"Email enviado.") }
+                        .addOnFailureListener { e ->
+                            Log.w(TAG, "Falha ao enviar email de redefinição", e) }
+
+                }
+                else{
+                    Log.w(TAG,"Email nao esta no banco") // Result = null
+                }
             }
-            else{
-                Log.w(TAG,"Email inválido")
-            }
-        }
+        .addOnFailureListener { Log.w(TAG,"Erro ao consultar o banco") //Nao conseguiu consultar o banco
+             }
 }
+
+fun isValidEmail(email: String?): Boolean {
+    if (email == null) return false
+
+    val EMAIL_PATTERN =
+        "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
+    val pattern = Regex(EMAIL_PATTERN)
+    return pattern.matches(email)
+}
+
+
