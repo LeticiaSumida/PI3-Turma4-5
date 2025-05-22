@@ -3,6 +3,7 @@ package br.edu.puc.superid
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -21,11 +22,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,10 +32,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -45,7 +40,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -53,15 +47,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -75,8 +67,8 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -88,6 +80,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
+import br.edu.puc.superid.ui.theme.cinzaescuro
+import br.edu.puc.superid.ui.theme.preto
 import br.edu.puc.superid.ui.theme.roxo
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.Firebase
@@ -116,19 +110,10 @@ class CategoriesScreenActivity : ComponentActivity() {
         }
     }
 
-
     data class ContaSenha(
         var login: String,
         var senha: String
     )
-    data class FabButtonItens(
-        val icon: ImageVector,
-        val title: String
-
-    )
-
-
-
 
 
     @Composable
@@ -138,10 +123,7 @@ class CategoriesScreenActivity : ComponentActivity() {
         val lifecycleOwner = LocalLifecycleOwner.current
         val systemUiController = rememberSystemUiController()
         var expanded by remember {mutableStateOf(false)}
-        val items = listOf(
-            FabButtonItens(Icons.Filled.Lock, "Nova senha"),
-            FabButtonItens(Icons.Filled.Add, "Nova categoria")
-        )
+
 
 
 
@@ -204,7 +186,11 @@ class CategoriesScreenActivity : ComponentActivity() {
                     modifier = Modifier.align(Alignment.Start)
                 )
                 categorias.forEach { cat ->
-                    expandableCard(cat)
+                    expandableCard(
+                        categoria = cat,
+                        onCategoriaRemovida = { categorias.remove(cat) }
+                    )
+
                 }
             }
 
@@ -213,16 +199,16 @@ class CategoriesScreenActivity : ComponentActivity() {
 
 
 
-            FloatingActionButton(
+            SmallFloatingActionButton(
                 onClick = {expanded = !expanded},
-
-
-
+                containerColor =  roxo,
+                contentColor = branco,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .offset(x = (-24).dp, y = (-50).dp)
-                    .size(64.dp)
+                    .size(45.dp)
                     .rotate(rotation),
+
             ) {
                 Icon(Icons.Filled.Add, "Floating action button.")
             }
@@ -234,7 +220,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     exit = fadeOut() + slideOutVertically { fullHeight -> fullHeight / 3  } + scaleOut(),
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .offset( y = (-130).dp)
+                        .offset( y = (-115).dp)
                         .padding(vertical = 2.dp)
                         .padding(end = 20.dp)
                 ) {
@@ -284,12 +270,13 @@ class CategoriesScreenActivity : ComponentActivity() {
 
 
     @Composable
-    fun expandableCard(categoria: String) {
+    fun expandableCard(categoria: String, onCategoriaRemovida: () -> Unit) {
         val context = LocalContext.current
         var expandedState by remember { mutableStateOf(false) }
         val rotationState by animateFloatAsState(
             targetValue = if (expandedState) 180f else 0f
         )
+
 
         val senhas = remember { mutableStateListOf<ContaSenha>() }
 
@@ -311,7 +298,8 @@ class CategoriesScreenActivity : ComponentActivity() {
         Card(
             modifier = Modifier
 
-                .padding(top = 10.dp)
+                .padding(top = 30.dp)
+
                 .fillMaxWidth()
                 .animateContentSize(
                     animationSpec = tween(
@@ -319,17 +307,25 @@ class CategoriesScreenActivity : ComponentActivity() {
                         easing = LinearOutSlowInEasing
                     )
                 )
+                .shadow(
+                    elevation =12.dp,
+                    shape = RoundedCornerShape(16),
+                    ambientColor = cinzaescuro, // Roxo mais claro para a sombra
+                    spotColor = preto
+
+                )
                 .clickable {
                     expandedState = !expandedState // Alterna o estado ao clicar
                 },
             colors = CardDefaults.cardColors(
                 containerColor = roxo,
-            )
+            ) ,
+            shape = RoundedCornerShape(16)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
+                    .padding(horizontal = 6.dp)
 
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -355,6 +351,26 @@ class CategoriesScreenActivity : ComponentActivity() {
                         text = categoria,
                         overflow = TextOverflow.Ellipsis
                     )
+                    IconButton(
+                        modifier = Modifier,
+
+
+                        onClick = {
+                            removerCategoriaFirestore(
+                                categoria = categoria,
+                                onSucesso = {
+                                    onCategoriaRemovida()
+                                    Toast.makeText(context, "Categoria deletada", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }
+                    ){
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Deletar categoria",
+                            tint = branco
+                        )
+                    }
 
 
                 }
@@ -364,7 +380,8 @@ class CategoriesScreenActivity : ComponentActivity() {
                     senhas.forEach { conta ->
                         mostrarSenhas(conta, senhas)
                         HorizontalDivider(
-                            Modifier.padding(horizontal = 33.dp),
+                            Modifier.padding(horizontal = 33.dp)
+                                .padding(bottom = 10.dp),
                             color = Color.LightGray
                         )
                     }
@@ -567,6 +584,35 @@ class CategoriesScreenActivity : ComponentActivity() {
             .addOnFailureListener { e ->
                 Log.w("Firestore", "Erro ao buscar a senha", e)
                 onFailure(e)
+            }
+    }
+
+    fun removerCategoriaFirestore(
+        categoria:String,
+        onSucesso: () -> Unit,
+
+    ){
+        val db = Firebase.firestore
+        val user = Firebase.auth.currentUser
+        val uid = user!!.uid
+
+        db.collection("Usuario").document(uid).collection("categorias").whereEqualTo("nome", categoria)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot) {
+                    document.reference.delete()
+                        .addOnSuccessListener {
+                            Log.d("Firestore", "Categoria deletada com sucesso.")
+                            onSucesso()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.w("Firestore", "Erro ao deletar Categoria ", e)
+                        }
+                }
+
+    }   .addOnFailureListener { e ->
+                Log.w("Firestore", "Erro ao buscar a categoria", e)
+
             }
     }
 

@@ -21,10 +21,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import br.edu.puc.superid.ui.theme.branco
+import br.edu.puc.superid.ui.theme.cinzaclaro
+import br.edu.puc.superid.ui.theme.cinzaescuro
 import br.edu.puc.superid.ui.theme.roxo
 import com.google.firebase.FirebaseApp
 
@@ -63,28 +67,46 @@ class WelcomeActivity : ComponentActivity() {
                 fontSize = 60.sp,
                 color = roxo
             )
-            OutlinedButton(
+            Button(
                 onClick = {
                     val intent = Intent(context, SignUpActivity::class.java)
                     context.startActivity(intent)
 
                 },
+                colors = ButtonDefaults.buttonColors(containerColor = branco),
+                shape = RoundedCornerShape(10),
                 modifier = Modifier
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp)
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 12.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(10),
+                        ambientColor = cinzaclaro, // Roxo mais claro para a sombra
+                        spotColor = cinzaescuro
+
+                    )
             ){
-                Text("Cadastrar")
+                Text("Cadastrar", color = roxo)
             }
-            OutlinedButton(
+            Button(
                 onClick = {
                     val intent = Intent(context, SignInActivity::class.java)
                     context.startActivity(intent)
                 },
+                colors = ButtonDefaults.buttonColors(containerColor = branco),
+                shape = RoundedCornerShape(10),
                 modifier = Modifier
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp)
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 12.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(10),
+                        ambientColor = cinzaclaro, // Roxo mais claro para a sombra
+                        spotColor = cinzaescuro
+
+                    )
             ){
-                Text("Login")
+                Text("Login", color = roxo)
             }
         }
     }
