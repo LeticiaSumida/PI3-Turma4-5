@@ -100,14 +100,17 @@ class SignInActivity : ComponentActivity() {
         Column(
             modifier = Modifier
                 .padding(24.dp)
+                .padding(top = 50.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
 
         ) {
             Image(
-                painter = painterResource(id = R.drawable.cadastro),
+                painter = painterResource(id = R.drawable.cadeado3),
                 contentDescription = null,
-                modifier = Modifier.size(250.dp)
+                modifier = Modifier
+                .size(300.dp)
+                .padding(start = 40.dp)
 
             )
             Text(
@@ -147,11 +150,7 @@ class SignInActivity : ComponentActivity() {
                 }
             )
 
-            Text("Esqueci minha senha",
-            modifier = Modifier.clickable(
-                onClick = { esqueciSenhaModal = true
-                    }
-            ))
+
             if (erroMensagem != null) {
                 Text(
                     text = erroMensagem!!,

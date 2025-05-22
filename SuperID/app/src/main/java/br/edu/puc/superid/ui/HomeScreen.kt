@@ -1,5 +1,6 @@
 package br.edu.puc.superid.ui
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,15 +20,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.edu.puc.superid.CategoriesScreenActivity
 import br.edu.puc.superid.R
+import br.edu.puc.superid.SignUpActivity
 
 @Composable
 fun HomePage(){
+    var context = LocalContext.current
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -92,7 +97,9 @@ fun HomePage(){
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { /* COLOCAR CAMINHO DA ACTIVITY DE SENHAS */ },
+                onClick = { val intent = Intent(context, CategoriesScreenActivity::class.java)
+                    context.startActivity(intent)
+                    },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6441A5)),
                 modifier = Modifier
                     .fillMaxWidth()
