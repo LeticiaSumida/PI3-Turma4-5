@@ -9,9 +9,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -22,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +44,10 @@ import br.edu.puc.superid.ui.MessageDialog
 import br.edu.puc.superid.ui.MessageType
 import br.edu.puc.superid.ui.WelcomeCarousel
 import br.edu.puc.superid.ui.theme.SuperIdTheme
+import br.edu.puc.superid.ui.theme.branco
+import br.edu.puc.superid.ui.theme.cinzaclaro
+import br.edu.puc.superid.ui.theme.cinzaescuro
+import br.edu.puc.superid.ui.theme.roxo
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -88,11 +96,12 @@ class SignUpActivity : ComponentActivity() {
         Column(
             modifier = Modifier
                 .padding(24.dp)
+                .padding(top = 50.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.cadastro),
+                painter = painterResource(id = R.drawable.cadeado3),
                 contentDescription = null,
                 modifier = Modifier.size(250.dp)
             )
@@ -104,42 +113,25 @@ class SignUpActivity : ComponentActivity() {
                 fontWeight = FontWeight.Bold
             )
 
-            TextField(
-                modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 12.dp)
-                    .fillMaxWidth(),
+            UnderlineTextField(
+
                 value = nome,
                 onValueChange = { nome = it },
-                label = { Text("Nome") }
+                label = "Nome"
             )
 
-            TextField(
-                modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 12.dp)
-                    .fillMaxWidth(),
+            UnderlineTextField(
+
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") }
+                label = "Email"
             )
 
-            TextField(
-                modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 12.dp)
-                    .fillMaxWidth(),
+            UnderlineTextField(
                 value = senha,
                 onValueChange = { senha = it },
-                label = { Text("Senha Mestre") },
-                visualTransformation = if (senhaVisibilidade) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val image = if (senhaVisibilidade)
-                        Icons.Default.Visibility
-                    else
-                        Icons.Default.VisibilityOff
+                label = "Senha Mestre",
 
-                    IconButton(onClick = { senhaVisibilidade = !senhaVisibilidade }) {
-                        Icon(imageVector = image, contentDescription = null)
-                    }
-                }
 
             )
 
@@ -158,9 +150,7 @@ class SignUpActivity : ComponentActivity() {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
             } else {
                 Button(
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xff000000)
-                    ),
+
                     onClick = {
                         erroMensagem = null
                         if (nome.isBlank() || email.isBlank() || senha.isBlank()) {
@@ -196,15 +186,26 @@ class SignUpActivity : ComponentActivity() {
                             }
                         }
                     },
+                    colors = ButtonDefaults.buttonColors(containerColor = roxo),
+                    shape = RoundedCornerShape(16),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 10.dp, horizontal = 12.dp)
+                        .shadow(
+                            elevation = 9.dp,
+                            shape = RoundedCornerShape(16),
+                            ambientColor = cinzaclaro, // Roxo mais claro para a sombra
+                            spotColor = cinzaescuro
+
+                        )
                 ) {
-                    Text("Cadastrar")
+                    Text("Cadastrar", color = branco)
                 }
             }
-
-            Text("Já tem uma conta? Faça Login",
+            Row(){
+            Text("Já tem uma conta? ")
+            Text("Faça Login",
+                color = roxo,
                 modifier = Modifier.clickable(
                     onClick = {
                         val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
@@ -212,7 +213,7 @@ class SignUpActivity : ComponentActivity() {
                         finish()
                     }
 
-                ))
+                ))}
 
             if (showSuccessDialog) {
                 MessageDialog(
@@ -327,4 +328,67 @@ class SignUpActivity : ComponentActivity() {
         return BCrypt.hashpw(password, BCrypt.gensalt())
 
     }
+    @Composable
+    fun UnderlineTextField(
+        value: String,
+        onValueChange: (String) -> Unit,
+        label: String
+    ) {
+        var senhaVisibilidade by remember { mutableStateOf(false) }
+
+        if (label == "Senha Mestre"){
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { Text(label) },
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    disabledTextColor = Color.LightGray,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Gray,
+                    unfocusedIndicatorColor = Color.Gray,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 30.dp),
+                visualTransformation = if (senhaVisibilidade) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (senhaVisibilidade)
+                        Icons.Default.Visibility
+                    else
+                        Icons.Default.VisibilityOff
+
+                    IconButton(onClick = { senhaVisibilidade = !senhaVisibilidade }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                }
+            )
+        }
+        else{
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { Text(label) },
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    disabledTextColor = Color.LightGray,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Gray,
+                    unfocusedIndicatorColor = Color.Gray,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 30.dp)
+            )}
+
+    }
+
 }
