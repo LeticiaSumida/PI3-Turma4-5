@@ -52,6 +52,7 @@ import br.edu.puc.superid.ui.theme.roxoclaro
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 
 private val TAG = "SignInActivityLOG"
 
@@ -253,13 +254,30 @@ class SignInActivity : ComponentActivity() {
         }
     }
 
+
+
+
+
     fun checarVerificacao(callback: (Boolean, String?) -> Unit){
         val user = FirebaseAuth.getInstance().currentUser
+        val db = Firebase.firestore
 
         if (user != null) {
+            val uid = user.uid
             user.reload().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    callback(user.isEmailVerified, null)
+                    var isverified = user.isEmailVerified
+                    if(isverified){
+                        db.collection("Usuario").document(uid)
+                            .update("emailVerificado", true)
+                            .addOnSuccessListener {
+                                Log.d(TAG, "Campo emailVerificado atualizado com sucesso no Firestore")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.w(TAG, "Erro ao atualizar emailVerificado no Firestore", e)
+                            }
+                    } else{callback(isverified, null)}
+
                 } else {
                     callback(false, task.exception?.message)
                 }
