@@ -12,6 +12,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,10 +29,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.edu.puc.superid.R
 import com.google.firebase.Firebase
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 
 private val TAG = "MODALSCREEN"
+
 @Composable
 fun MessageDialog(
     type: MessageType,
@@ -185,7 +189,7 @@ fun ModalTextField(
                             visualTransformation = PasswordVisualTransformation()
                         )
                         Button(
-                            onClick = { /*TODO*/},
+                            onClick = { /*TODO*/ },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xff000000)
                             ),
@@ -208,21 +212,21 @@ fun ModalTextField(
                         )
                         Button(
                             onClick = {
-                                if(isValidEmail(email2)){
-                                    esqueciSenha(email2) {sucesso, mensagem ->
-                                        if(sucesso){
+                                if (isValidEmail(email2)) {
+                                    esqueciSenha(email2) { sucesso, mensagem ->
+                                        if (sucesso) {
                                             mensagemErro.value = mensagem
                                             sucessBoolean = true
 
-                                        }
-                                        else{
+                                        } else {
                                             mensagemErro.value = mensagem
                                             erroBoolean = true
                                         }
-                                    } }
-                                else{
+                                    }
+                                } else {
                                     Log.d(TAG, "Formato invalido")
-                                }},
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xff000000)
                             ),
@@ -232,24 +236,24 @@ fun ModalTextField(
                         ) {
                             Text(text = textoBotao1)
                         }
-                        if(erroBoolean){
+                        if (erroBoolean) {
                             ModalErrorMessage(
                                 type = MessageType.ERROR,
                                 titulo = "Email nao enviado",
                                 mensagem = mensagemErro.value,
-                                botao = {erroBoolean = false},
+                                botao = { erroBoolean = false },
                                 textobotao = "Fechar",
-                                onDismiss = {erroBoolean = false}
+                                onDismiss = { erroBoolean = false }
                             )
                         }
-                        if(sucessBoolean){
+                        if (sucessBoolean) {
                             ModalErrorMessage(
                                 type = MessageType.SUCCESS,
                                 titulo = "Email enviado com sucesso",
                                 mensagem = mensagemErro.value,
-                                botao = {sucessBoolean = false},
+                                botao = { sucessBoolean = false },
                                 textobotao = "Fechar",
-                                onDismiss = {sucessBoolean = false}
+                                onDismiss = { sucessBoolean = false }
                             )
                         }
                     }
@@ -278,9 +282,10 @@ fun ModalTextField(
     )
 }
 
-
-fun esqueciSenha(email: String,
-                 callback: (Boolean, String) -> Unit){
+fun esqueciSenha(
+    email: String,
+    callback: (Boolean, String) -> Unit
+) {
 
     val db = Firebase.firestore
 
@@ -288,35 +293,97 @@ fun esqueciSenha(email: String,
         .whereEqualTo("email", email)
         .get()
         .addOnSuccessListener { result ->
-                if (!result.isEmpty) {
-                    val document = result.documents[0]
-                    val emailVerificado = document.getBoolean("emailVerificado") ?: false
+            if (!result.isEmpty) {
+                val document = result.documents[0]
+                val emailVerificado = document.getBoolean("emailVerificado") ?: false
 
-                    if (emailVerificado){
+                if (emailVerificado) {
                     Firebase.auth.sendPasswordResetEmail(email)
-                        .addOnSuccessListener { Log.d(TAG,"Email enviado.")
-                            callback(true, "Email de redefinição enviado com sucesso.")}
+                        .addOnSuccessListener {
+                            Log.d(TAG, "Email enviado.")
+                            callback(true, "Email de redefinição enviado com sucesso.")
+                        }
                         .addOnFailureListener { e ->
                             Log.w(TAG, "Falha ao enviar email de redefinição", e)
-                            callback(false, "Falha ao enviar email de redefinição: ${e.message}")}
+                            callback(false, "Falha ao enviar email de redefinição: ${e.message}")
+                        }
 
-                } else{
-                        Log.w(TAG, "Email não verificado. Não é possível enviar redefinição.")
-                        callback(false, "Email não verificado. Verifique seu email antes de redefinir a senha.")
-
-                    }
-                }
-                else{
-                    Log.w(TAG,"Email nao esta no banco") // Result = null
-                    callback(false, "Email não encontrado no sistema.")
+                } else {
+                    Log.w(TAG, "Email não verificado. Não é possível enviar redefinição.")
+                    callback(
+                        false,
+                        "Email não verificado. Verifique seu email antes de redefinir a senha."
+                    )
 
                 }
+            } else {
+                Log.w(TAG, "Email nao esta no banco") // Result = null
+                callback(false, "Email não encontrado no sistema.")
+
             }
-        .addOnFailureListener { e -> Log.w(TAG,"Erro ao consultar o banco")
-            callback(false, "Erro ao consultar o banco: ${e.message}")//Nao conseguiu consultar o banco
+        }
+        .addOnFailureListener { e ->
+            Log.w(TAG, "Erro ao consultar o banco")
+            callback(
+                false,
+                "Erro ao consultar o banco: ${e.message}"
+            )//Nao conseguiu consultar o banco
 
-             }
+        }
 
+}
+
+
+@Composable
+fun ConfirmarSenhaEIrParaCamera(
+    onSenhaConfirmada: () -> Unit,
+    onCancelar: () -> Unit
+) {
+    var senha by remember { mutableStateOf("") }
+    var erro by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+        onDismissRequest = onCancelar,
+        title = { Text("Confirme sua senha") },
+        text = {
+            Column {
+                Text("Digite sua senha para confirmar.")
+                Spacer(Modifier.height(8.dp))
+                TextField(
+                    value = senha,
+                    onValueChange = { senha = it },
+                    label = { Text("Senha") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val user = FirebaseAuth.getInstance().currentUser
+                val email = user?.email
+                if (user != null && email != null) {
+                    val credential = EmailAuthProvider.getCredential(email, senha)
+                    user.reauthenticate(credential)
+                        .addOnSuccessListener {
+                            onSenhaConfirmada()
+                        }
+                        .addOnFailureListener { e ->
+                            erro = "Senha incorreta: ${e.message}"
+                        }
+                } else {
+                    erro = "Usuário não autenticado."
+                }
+            }) {
+                Text("Confirmar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancelar) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 fun isValidEmail(email: String?): Boolean {
@@ -337,7 +404,7 @@ fun ModalErrorMessage(
     textobotao: String,
     onDismiss: () -> Unit
 
-){
+) {
 
 
     AlertDialog(
@@ -365,9 +432,11 @@ fun ModalErrorMessage(
             }
         },
         text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()){
-                Text(text=mensagem)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = mensagem)
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = botao,
@@ -378,7 +447,7 @@ fun ModalErrorMessage(
                         .padding(vertical = 4.dp)
                         .align(Alignment.CenterHorizontally)
 
-                ){
+                ) {
                     Text(text = textobotao)
                 }
             }
@@ -386,13 +455,5 @@ fun ModalErrorMessage(
         confirmButton = {},
         dismissButton = {}
 
-    )}
-
-
-/*if(erroMensagem){
-    ModalErrorMessage(
-        titulo = "Email nao enviado",
-        mensagem = "Seu email ainda nao foi verificado.\n Verifique na caixa de entrada do seu email.",
-        botao = {},
-        textobotao = "Fechar"
-    )*/
+    )
+}
