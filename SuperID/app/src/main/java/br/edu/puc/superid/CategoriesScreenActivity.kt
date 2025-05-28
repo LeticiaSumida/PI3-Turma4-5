@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,20 +37,29 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemDefaults.contentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
@@ -78,6 +88,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import br.edu.puc.superid.ui.HomePage
 import br.edu.puc.superid.ui.MessageType
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
@@ -124,7 +135,8 @@ class CategoriesScreenActivity : ComponentActivity() {
         val lifecycleOwner = LocalLifecycleOwner.current
         val systemUiController = rememberSystemUiController()
         var expanded by remember {mutableStateOf(false)}
-
+        var expanded2 by remember {mutableStateOf(false)}
+        var home by remember {mutableStateOf(false)}
 
 
 
@@ -153,16 +165,57 @@ class CategoriesScreenActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(16.dp)
-
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(30.dp)
-                    .background(Color(0xFF5847AA))
-                    .align(Alignment.TopCenter)
+                    .height(70.dp)
+                    .background(roxo)
             )
+            Row(modifier = Modifier.padding(vertical = 20.dp),
+                verticalAlignment = Alignment.CenterVertically){
+                IconButton(onClick = { expanded2 = !expanded2}
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Sign-Out",
+                        tint = branco,
+                        )
+                }
+                DropdownMenu(
+                    expanded = expanded2,
+                    onDismissRequest = { expanded2 = false }
+                ) {
+                    DropdownMenuItem(
+
+                        text = { Text("Home") },
+                        leadingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) },
+                        onClick = {
+                            home = true
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Logout") },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
+                        onClick = { FirebaseAuth.getInstance().signOut()
+                            val intent = Intent(context, SignInActivity::class.java)
+                            context.startActivity(intent)
+                            finish()
+                        }
+                    )
+                }
+                Text("SuperID", color = branco)
+
+            }
+
+            if(home){
+                HomePage()
+                finish()
+            }
+
+
+
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -200,7 +253,7 @@ class CategoriesScreenActivity : ComponentActivity() {
 
 
 
-            SmallFloatingActionButton(
+            FloatingActionButton(
                 onClick = {expanded = !expanded},
                 containerColor =  roxo,
                 contentColor = branco,
@@ -263,7 +316,6 @@ class CategoriesScreenActivity : ComponentActivity() {
         }
 
     }
-
 
 
 

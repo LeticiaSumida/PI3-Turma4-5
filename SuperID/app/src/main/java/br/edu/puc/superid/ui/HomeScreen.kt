@@ -2,7 +2,9 @@ package br.edu.puc.superid.ui
 
 import android.content.Intent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,10 +15,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,14 +42,56 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.CategoriesScreenActivity
 import br.edu.puc.superid.R
-import br.edu.puc.superid.SignUpActivity
+import br.edu.puc.superid.SignInActivity
+
+import br.edu.puc.superid.ui.theme.branco
+import br.edu.puc.superid.ui.theme.roxo
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun HomePage(){
     var context = LocalContext.current
+
+    var expanded2 by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp)
+            .background(roxo)
+    )
+    Row(modifier = Modifier.padding(vertical = 20.dp),
+        verticalAlignment = Alignment.CenterVertically){
+        IconButton(onClick = { expanded2 = !expanded2}
+        ) {
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = "Sign-Out",
+                tint = branco,
+            )
+        }
+        DropdownMenu(
+            expanded = expanded2,
+            onDismissRequest = { expanded2 = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Logout") },
+                leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
+                onClick = { FirebaseAuth.getInstance().signOut()
+                    val intent = Intent(context, SignInActivity::class.java)
+                    context.startActivity(intent)
+
+                }
+            )
+        }
+        Text("SuperID", color = branco)
+
+    }
+
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(top = 100.dp)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
@@ -46,7 +102,7 @@ fun HomePage(){
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = null,
                 modifier = Modifier
-                    .size(180.dp)
+                    .size(200.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -61,7 +117,7 @@ fun HomePage(){
 
             Button(
                 onClick = { /* COLOCAR CAMINHO DA ACTIVITY DO LEITOR DE QRCODE */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6441A5)),
+                colors = ButtonDefaults.buttonColors(containerColor = roxo),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
@@ -100,7 +156,7 @@ fun HomePage(){
                 onClick = { val intent = Intent(context, CategoriesScreenActivity::class.java)
                     context.startActivity(intent)
                     },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6441A5)),
+                colors = ButtonDefaults.buttonColors(containerColor = roxo),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
