@@ -48,7 +48,7 @@
                 <button type="submit" class="buttonLogin">Entrar</button>
             
                 <div class="partner-login">
-                <a href="#" class="partner-button">
+                <a href="#" class="partner-button" onclick="abrirQRCode()">
                     <img src="../frontEnd/src/img/superID.png" alt="SuperID" />
                     Entrar com SuperID
                 </a>
@@ -65,6 +65,57 @@
             
         </div>
     </div>
+
+
+
+ 
+ 
+    <div id="telaLojaLogado" class="tela">
+         <header>
+            <h1>Mercado Preso</h1>
+            <button class="buttonEntrar">Minha Conta</button>
+        </header>
+        <main>
+            <h2 style="color:white;">Produtos em Destaque</h2>
+            <div class="product-list">
+                <div class="product-card">
+                    <img src="../frontEnd/src/img/fone_de_ouvido.png" alt="Produto 1" />
+                    <h3>Fone de Ouvido</h3>
+                    <p>R$ 199,90</p>
+                    <button class="buttonLogin">Comprar</button>
+                </div>
+                <div class="product-card">
+                    <img src="../frontEnd/src/img/smart_watch.jpeg" alt="Produto 2" />
+                    <h3>Relógio Smart</h3>
+                    <p>R$ 299,90</p>
+                    <button class="buttonLogin">Comprar</button>
+                </div>
+                <div class="product-card">
+                    <img src="../frontEnd/src/img/teclado_gamer.jpeg" alt="Produto 3" />
+                    <h3>Teclado Gamer</h3>
+                    <p>R$ 249,90</p>
+                    <button class="buttonLogin">Comprar</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+
+
+
+
+
+
+    <div id="qrModal" class="modal">
+            <div class="modal-content">
+                <h3>Escaneie com SuperID</h3>
+                <div id="qrcode"></div>
+                <p>Aguardando autenticação...</p>
+                <button onclick="fecharQRCode()">Cancelar</button>
+            </div>
+        </div>
+
 </body>
 
 </html>
