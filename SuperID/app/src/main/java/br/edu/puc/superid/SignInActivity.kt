@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -26,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -47,6 +50,10 @@ import br.edu.puc.superid.ui.HomePage
 import br.edu.puc.superid.ui.MessageType
 import br.edu.puc.superid.ui.ModalTextField
 import br.edu.puc.superid.ui.theme.SuperIdTheme
+import br.edu.puc.superid.ui.theme.branco
+import br.edu.puc.superid.ui.theme.cinzaclaro
+import br.edu.puc.superid.ui.theme.cinzaescuro
+import br.edu.puc.superid.ui.theme.preto
 import br.edu.puc.superid.ui.theme.roxo
 import br.edu.puc.superid.ui.theme.roxoclaro
 import com.google.firebase.Firebase
@@ -76,27 +83,6 @@ class SignInActivity : ComponentActivity() {
         var esqueciSenhaModal by remember { mutableStateOf(false) }
         var senhaVisibilidade by remember { mutableStateOf(false) }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(roxoclaro, roxo) // Gradiente roxo escuro
-                    )
-                )
-        ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                drawCircle(
-                    color = Color.White.copy(alpha = 0.4f),
-                    radius = size.minDimension / 1.7f,
-                    center = Offset(x = size.width * 0.2f, y = size.height * 0.2f)
-                )
-                drawCircle(
-                    color = Color.White.copy(alpha = 0.5f),
-                    radius = size.minDimension / 1.5f,
-                    center = Offset(x = size.width * 0.7f, y = size.height * 0.9f)
-                )
-            }}
 
         Column(
             modifier = Modifier
@@ -122,34 +108,18 @@ class SignInActivity : ComponentActivity() {
 
             )
 
-            TextField(
-                modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 12.dp)
-                    .fillMaxWidth(),
+            UnderlineTextField(
                 value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") }
+                onValueChange = {email = it},
+                label = "Email"
             )
 
-            TextField(
-                modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 12.dp)
-                    .fillMaxWidth(),
+            UnderlineTextField(
                 value = senha,
                 onValueChange = { senha = it },
-                label = { Text("Senha Mestre") },
-                visualTransformation = if (senhaVisibilidade) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val image = if (senhaVisibilidade)
-                        Icons.Default.Visibility
-                    else
-                        Icons.Default.VisibilityOff
-
-                    IconButton(onClick = { senhaVisibilidade = !senhaVisibilidade }) {
-                        Icon(imageVector = image, contentDescription = null)
-                    }
-                }
+                label = "Senha Mestre",
             )
+
 
 
             if (erroMensagem != null) {
@@ -167,9 +137,6 @@ class SignInActivity : ComponentActivity() {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
             } else {
                 Button(
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xff000000)
-                    ),
 
                     onClick = {
                         erroMensagem = null
@@ -211,12 +178,21 @@ class SignInActivity : ComponentActivity() {
                             }
                         }
                     },
+                    colors = ButtonDefaults.buttonColors(containerColor = roxo),
+                    shape = RoundedCornerShape(16),
                     modifier = Modifier
                         .fillMaxWidth()
-                            .padding(top = 10.dp)
-                            .padding(horizontal = 12.dp)
-                ) {
-                    Text("Logar")
+                        .padding(vertical = 10.dp, horizontal = 12.dp)
+                        .shadow(
+                            elevation = 8.dp,
+                            shape = RoundedCornerShape(16),
+                            ambientColor = cinzaclaro, // Roxo mais claro para a sombra
+                            spotColor = cinzaescuro
+
+                        )
+                )
+                 {
+                    Text("Logar", color= branco)
 
                 }
                 Row(){
@@ -243,14 +219,17 @@ class SignInActivity : ComponentActivity() {
                 }
             }
 
-            Text("Ainda não tem conta? Cadastre-se",
+            Row(){
+            Text("Ainda não tem conta? ")
+            Text("Cadastre-se",
+                color = roxo,
                 modifier = Modifier.clickable(
                     onClick = {
                         val intent = Intent(context, SignUpActivity::class.java)
                         context.startActivity(intent)
                         finish()
                     }
-                ))
+                ))}
         }
     }
 
@@ -309,5 +288,71 @@ class SignInActivity : ComponentActivity() {
                 onResult(false)
             }
         }
+    }
+
+
+
+
+    @Composable
+    fun UnderlineTextField(
+        value: String,
+        onValueChange: (String) -> Unit,
+        label: String
+    ) {
+        var senhaVisibilidade by remember { mutableStateOf(false) }
+
+        if (label == "Senha Mestre"){
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { Text(label) },
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    disabledTextColor = Color.LightGray,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Gray,
+                    unfocusedIndicatorColor = Color.Gray,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 30.dp),
+                visualTransformation = if (senhaVisibilidade) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (senhaVisibilidade)
+                        Icons.Default.Visibility
+                    else
+                        Icons.Default.VisibilityOff
+
+                    IconButton(onClick = { senhaVisibilidade = !senhaVisibilidade }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                }
+            )
+        }
+        else{
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                disabledTextColor = Color.LightGray,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Gray,
+                unfocusedIndicatorColor = Color.Gray,
+                disabledIndicatorColor = Color.Transparent
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp, horizontal = 30.dp)
+        )}
+
     }
 }
