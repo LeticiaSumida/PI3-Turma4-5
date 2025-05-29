@@ -97,7 +97,7 @@ class CategoryActivity : ComponentActivity() {
 
 
                 onClick = {
-                    var categoria = categoria.uppercase()
+                    var categoria = categoria
                     val user = Firebase.auth.currentUser
                     val uid = user!!.uid
                     checarCategoria(categoria) { categoriaexistente ->

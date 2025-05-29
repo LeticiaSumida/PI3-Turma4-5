@@ -388,19 +388,22 @@ class CategoriesScreenActivity : ComponentActivity() {
                         text = categoria,
                         overflow = TextOverflow.Ellipsis
                     )
-
-                    IconButton(
-                        modifier = Modifier,
-                        onClick = {
-                            mostrarDialog = true
+                    if (!categoria.equals("Sites Web", ignoreCase = true)) {
+                        IconButton(
+                            modifier = Modifier,
+                            onClick = {
+                                mostrarDialog = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Deletar categoria",
+                                tint = branco
+                            )
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Deletar categoria",
-                            tint = branco
-                        )
                     }
+
+
                 }
                 if (expandedState) {
                     Spacer(modifier = Modifier.height(16.dp))
