@@ -21,6 +21,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,7 @@ import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -430,6 +432,14 @@ class CategoriesScreenActivity : ComponentActivity() {
                                     fontSize = 28.sp,
                                     lineHeight = 36.sp
                                 )
+                                Icon(
+                                    imageVector = Icons.Default.Cancel,
+                                    contentDescription = "Ícone de deletar",
+                                    tint = branco,
+                                    modifier = Modifier
+                                        .size(200.dp)
+                                        .padding(bottom = 20.dp)
+                                )
 
                                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -440,11 +450,6 @@ class CategoriesScreenActivity : ComponentActivity() {
                                                 categoria = categoria,
                                                 onSucesso = {
                                                     onCategoriaRemovida()
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Categoria deletada",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
                                                     mostrarDialog = false
                                                 }
                                             )
@@ -453,7 +458,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                                         shape = RoundedCornerShape(12.dp),
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(bottom = 8.dp)
+                                            .padding(bottom = 12.dp)
                                     ) {
                                         Text("Sim", color = roxo, fontWeight = FontWeight.Bold)
                                     }
@@ -465,6 +470,12 @@ class CategoriesScreenActivity : ComponentActivity() {
                                         colors = ButtonDefaults.buttonColors(containerColor = roxo),
                                         shape = RoundedCornerShape(12.dp),
                                         modifier = Modifier.fillMaxWidth()
+                                            .height(35.dp)
+                                            .border(
+                                                width = 2.dp,
+                                                color = Color.White,
+                                                shape = RoundedCornerShape(12.dp),
+                                            )
                                     ) {
                                         Text("Não", color = branco, fontWeight = FontWeight.Bold)
                                     }
