@@ -19,10 +19,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +44,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.ButtonDefaults
+import br.edu.puc.superid.ui.theme.branco
+import br.edu.puc.superid.ui.theme.roxo
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -49,7 +55,18 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
     val paginas = listOf("welcome", "passo1", "passo2", "termos")
     var paginaAtual by remember { mutableStateOf(0) }
     var aceitouTermos by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .background(roxo)
 
+    )
+    Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
+        verticalAlignment = Alignment.CenterVertically){
+        Text("SuperID", color = branco,
+        )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -57,6 +74,7 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         AnimatedContent(
             targetState = paginaAtual,
             transitionSpec = {
@@ -74,13 +92,13 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                 "welcome" -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(
-                            painter = painterResource(id = br.edu.puc.superid.R.drawable.imagem_default),
+                            painter = painterResource(id = br.edu.puc.superid.R.drawable.logo),
                             contentDescription = null,
                             modifier = Modifier.size(300.dp)
                         )
                         Text("Seja bem-vindo!\n", style = MaterialTheme.typography.headlineMedium)
                         Text(
-                            "Lorem ipsum dolor sit amet. Rem erf rfrfr numquam commodi 33 temporibus voluptas non Quis voluptates. Et nihil quaerat non natus illum hic expedita numquam ut accusamus beatae.",
+                            "Você acaba de dar o primeiro passo para simplificar e proteger sua vida digital!\n\nCom o Super ID, você pode armazenar todas as suas senhas com segurança, acessá-las facilmente sempre que precisar e manter suas informações organizadas em um só lugar.\n\nSe esquecer uma senha, basta consultar o Super ID em poucos toques, sem precisar redefinir tudo novamente. A proposta é oferecer praticidade sem abrir mão da segurança.",
                             fontSize = 18.sp,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center
@@ -91,50 +109,60 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                 "passo1" -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(
-                            painter = painterResource(id = br.edu.puc.superid.R.drawable.imagem_default),
+                            painter = painterResource(id = br.edu.puc.superid.R.drawable.logo),
                             contentDescription = null,
-                            modifier = Modifier.size(300.dp).padding(16.dp)
+                            modifier = Modifier.size(250.dp).padding(16.dp)
                         )
-                        Text("Passo 1\n", style = MaterialTheme.typography.headlineMedium)
                         Text(
-                            "Lorem ipsum dolor sit amet. Rem erf rfrfr numquam commodi 33 temporibus voluptas non Quis voluptates. Et nihil quaerat non natus illum hic expedita numquam ut accusamus beatae.",
-                            fontSize = 18.sp,
-                            modifier = Modifier.fillMaxWidth(),
+                            "Comece sua jornada com o SuperID!\n",
+                            style = MaterialTheme.typography.headlineMedium,
                             textAlign = TextAlign.Center
                         )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                "1. Para começar a usar o SuperID, crie sua conta.\n\n2. Preencha seu nome, e-mail e defina uma senha mestre — ela será usada sempre que quiser acessar o app.\n\n3. Após o cadastro, verifique seu e-mail e confirme sua conta. Esse passo é importante para desbloquear todas as funcionalidades.\n\n4. Com tudo pronto, basta fazer login usando sua senha mestre.\n\n5. Agora vamos te mostrar como o app funciona!",
+                                fontSize = 18.sp,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Justify
+                            )
+                        }
                     }
                 }
 
                 "passo2" -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(
-                            painter = painterResource(id = br.edu.puc.superid.R.drawable.imagem_default),
+                            painter = painterResource(id = br.edu.puc.superid.R.drawable.logo),
                             contentDescription = null,
                             modifier = Modifier.size(300.dp).padding(16.dp)
                         )
-                        Text("Passo 2\n", style = MaterialTheme.typography.headlineMedium)
+                        Text("Como funciona?\n", style = MaterialTheme.typography.headlineMedium)
                         Text(
-                            "Lorem ipsum dolor sit amet. Rem erf rfrfr numquam commodi 33 temporibus voluptas non Quis voluptates. Et nihil quaerat non natus illum hic expedita numquam ut accusamus beatae.",
+                            "1. No app, você pode salvar senhas de sites e aplicativos que usa com frequência\n\n2. Cada senha é armazenada com segurança e pode ser organizada em categorias para facilitar sua consulta.\n\n3. Você também pode entrar em sites escaneando um QR Code com o app, sem digitar senha.\n\n4. Pronto! Após aceitar os termos de uso, você já está pronto para iniciar seu cadastro!",
                             fontSize = 18.sp,
                             modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Justify
                         )
                     }
                 }
 
                 "termos" -> {
+                    val scrollState = rememberScrollState()
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("\n\nTermos e Condições\n", style = MaterialTheme.typography.headlineMedium)
                         Text(
-                            "Ao utilizar o aplicativo SuperID, voce concorda com os seguintes termos:\n" +
-                                    "O usuário é reponsável pels informacoes fornecidas no cadastro e pelo uso adequado da senha mestre.\n\n" +
-                                    "Todas as senhas e dados armazenados sao criptografados, mas o SuperID nao se responsabiliza por perdas decorrentes de acessos nao autorizados causados por negligencia do usuário.\n\n" +
-                                    "A funcionalidade de login via QR Code está disponivel apenas para plataformas compativeis e parceiras.\n\n" +
-                                    "O usuário concorda em nao utilizar o SuperID para atividades ilegais ou que violem direitos de terceiros.\n\n" +
-                                    "Ao prosseguir, voce confirma que leu, compreendeu e aceita integralmente os termos de uso.\n",
+                            "Ao utilizar o aplicativo SuperID, você concorda com os seguintes termos:\n\n" +
+                                    "•O usuário é reponsável pelas informações fornecidas no cadastro e pelo uso adequado da senha mestre.\n\n" +
+                                    "•Todas as senhas e dados armazenados são criptografados, mas o SuperID não se responsabiliza por perdas decorrentes de acessos não autorizados causados por negligência do usuário.\n\n" +
+                                    "•A funcionalidade de login via QR Code está disponivel apenas para plataformas compatíveis e parceiras.\n\n" +
+                                    "•O usuário concorda em não utilizar o SuperID para atividades ilegais ou que violem direitos de terceiros.\n\n" +
+                                    "•Ao prosseguir, você confirma que leu, compreendeu e aceita integralmente os termos de uso.\n",
                             fontSize = 18.sp,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                            modifier = Modifier.fillMaxWidth()
+                                .verticalScroll(scrollState),
+                            textAlign = TextAlign.Justify
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(checked = aceitouTermos, onCheckedChange = { aceitouTermos = it })
@@ -155,7 +183,11 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
             if (paginaAtual != 0) {
                 Button(onClick = {
                     if (paginaAtual > 0) paginaAtual--
-                }) {
+                },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF5847AA),
+                    contentColor = Color.White
+                )) {
                     Text("Voltar")
                 }
             } else {
@@ -194,10 +226,15 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                         onAceitar()
                     }
                 },
-                enabled = paginaAtual < paginas.lastIndex || aceitouTermos
+                enabled = paginaAtual < paginas.lastIndex || aceitouTermos,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF5847AA),
+                    contentColor = Color.White,
+                )
             ) {
                 Text(if (paginaAtual == paginas.lastIndex) "Finalizar" else "Próximo")
             }
+
         }
     }
 }
