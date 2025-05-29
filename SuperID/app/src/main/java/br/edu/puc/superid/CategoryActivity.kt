@@ -1,5 +1,6 @@
 package br.edu.puc.superid
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -11,9 +12,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -29,6 +35,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.ui.theme.SuperIdTheme
@@ -61,6 +68,8 @@ class CategoryActivity : ComponentActivity() {
         var categoria by remember { mutableStateOf("") }
         var erroCategoria by remember { mutableStateOf(false) }
         var categorias = remember { mutableStateListOf<String>() }
+        var mostrarDialog by remember { mutableStateOf(false) }
+
 
         Column(
             modifier = Modifier
@@ -107,6 +116,7 @@ class CategoryActivity : ComponentActivity() {
                             ).show()
                             categorias.add(categoria)
                             categoria = ""
+                            mostrarDialog = true
 
                         }
                     }
@@ -133,6 +143,58 @@ class CategoryActivity : ComponentActivity() {
                     color = branco
                 )
             }
+            val context = LocalContext.current
+            val activity = context as? Activity
+
+            if (mostrarDialog) {
+                AlertDialog(
+                    onDismissRequest = { mostrarDialog = false },
+                    title = null,
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Categoria cadastrada com sucesso!",
+                                color = branco,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(bottom = 24.dp),
+                                lineHeight = 36.sp
+                            )
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Sucesso",
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .padding(bottom = 16.dp)
+                            )
+                            Button(
+                                onClick = { mostrarDialog = false
+                                    activity?.finish()},
+                                colors = ButtonDefaults.buttonColors(containerColor = branco),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(
+                                    text = "Voltar para Minhas senhas",
+                                    color = roxo,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    },
+                    containerColor = roxo,
+                    shape = RoundedCornerShape(20.dp),
+                    tonalElevation = 8.dp,
+                    confirmButton = {}
+                )
+            }
+
 
             Button(
 

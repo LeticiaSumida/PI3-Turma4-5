@@ -77,6 +77,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -277,7 +278,9 @@ class CategoriesScreenActivity : ComponentActivity() {
                         onClick = {
                             val intent = Intent(context, CategoryActivity::class.java)
                             context.startActivity(intent)
-                        }
+                        },
+                        containerColor = roxo,
+                        contentColor = branco
                     ) {
                         Text("Nova categoria")
                     }
@@ -290,8 +293,9 @@ class CategoriesScreenActivity : ComponentActivity() {
                         onClick = {
                             val intent = Intent(context, PasswordActivity::class.java)
                             context.startActivity(intent)
-                        }
-
+                        },
+                        containerColor = roxo,
+                        contentColor = branco
                     ) {
                         Text("Nova senha")
                     }
@@ -307,6 +311,8 @@ class CategoriesScreenActivity : ComponentActivity() {
         val rotationState by animateFloatAsState(
             targetValue = if (expandedState) 180f else 0f
         )
+        var mostrarDialog by remember { mutableStateOf(false) }
+
 
         val senhas = remember { mutableStateListOf<ContaSenha>() }
 
@@ -384,17 +390,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     IconButton(
                         modifier = Modifier,
                         onClick = {
-                            removerCategoriaFirestore(
-                                categoria = categoria,
-                                onSucesso = {
-                                    onCategoriaRemovida()
-                                    Toast.makeText(
-                                        context,
-                                        "Categoria deletada",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            )
+                            mostrarDialog = true
                         }
                     ) {
                         Icon(
@@ -416,6 +412,72 @@ class CategoriesScreenActivity : ComponentActivity() {
                         )
                     }
                 }
+                if (mostrarDialog) {
+                    AlertDialog(
+                        onDismissRequest = { mostrarDialog = false },
+                        title = null,
+                        text = {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Deseja mesmo deletar essa categoria?",
+                                    color = branco,
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 28.sp,
+                                    lineHeight = 36.sp
+                                )
+
+                                Spacer(modifier = Modifier.height(20.dp))
+
+                                Column {
+                                    Button(
+                                        onClick = {
+                                            removerCategoriaFirestore(
+                                                categoria = categoria,
+                                                onSucesso = {
+                                                    onCategoriaRemovida()
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Categoria deletada",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    mostrarDialog = false
+                                                }
+                                            )
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = branco),
+                                        shape = RoundedCornerShape(12.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 8.dp)
+                                    ) {
+                                        Text("Sim", color = roxo, fontWeight = FontWeight.Bold)
+                                    }
+
+                                    Button(
+                                        onClick = {
+                                            mostrarDialog = false
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = roxo),
+                                        shape = RoundedCornerShape(12.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text("Não", color = branco, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {},
+                        containerColor = roxo,
+                        shape = RoundedCornerShape(20.dp),
+                        tonalElevation = 8.dp
+                    )
+                }
+
             }
 
         }

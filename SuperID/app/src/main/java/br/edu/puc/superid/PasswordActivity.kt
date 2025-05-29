@@ -10,11 +10,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -33,6 +38,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,6 +76,8 @@ class PasswordActivity : ComponentActivity() {
         var desc by remember { mutableStateOf("") }
         var categoriaSelecionada by remember { mutableStateOf("Categoria") }
         var categorias = remember { mutableStateListOf<String>() }
+        var mostrarDialog by remember { mutableStateOf(false) }
+
 
 
         LaunchedEffect(Unit) {
@@ -127,7 +135,10 @@ class PasswordActivity : ComponentActivity() {
 
             TextButton(
                 onClick = {
-                    addFirestoreSenha(login, senha, desc, categoriaSelecionada)
+                    addFirestoreSenha(login, senha, desc, categoriaSelecionada) {
+                        mostrarDialog = true
+                    }
+
                     Log.d(TAG, "Categoria selecionada: $categoriaSelecionada")
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = roxo),
@@ -149,8 +160,63 @@ class PasswordActivity : ComponentActivity() {
                     color = branco
                 )
             }
+            if (mostrarDialog) {
+                AlertDialog(
+                    onDismissRequest = { mostrarDialog = false },
+                    confirmButton = {},
+                    title = null,
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Sua senha foi cadastrada com sucesso!",
+                                color = branco,
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 24.dp),
+                                textAlign = TextAlign.Center,
+                                lineHeight = 36.sp
+                            )
+
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .padding(bottom = 24.dp)
+                            )
+
+                            TextButton(
+                                onClick = {
+                                    mostrarDialog = false
+                                    finish()
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = branco),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(
+                                    text = "Voltar para Minhas senhas",
+                                    color = roxo,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    },
+                    containerColor = roxo,
+                    shape = RoundedCornerShape(20.dp),
+                    tonalElevation = 8.dp
+                )
+            }
+
         }
     }
+}
+
 
     @Composable
     fun DropDownCategoria(
@@ -201,7 +267,7 @@ class PasswordActivity : ComponentActivity() {
         }
     }
 
-    fun addFirestoreSenha(login: String, senha: String, desc: String, categoria: String) {
+    fun addFirestoreSenha(login: String, senha: String, desc: String, categoria: String,onSuccess: () -> Unit) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
         val uid = user!!.uid
@@ -219,6 +285,7 @@ class PasswordActivity : ComponentActivity() {
         db.collection("Usuario").document(uid).collection("senhas").add(senhaDb)
             .addOnSuccessListener { documentReference ->
                 Log.d(TAG, "Documento adicionado com ID: $uid")
+                onSuccess()
             }
             .addOnFailureListener { e ->
                 Log.w("Firestore", "Erro ao adicionar documento", e)
@@ -245,11 +312,6 @@ class PasswordActivity : ComponentActivity() {
             }
     }
 
-    @Preview
-    @Composable
-    fun telaSenhaPreview() {
-        telaCadastroSenha()
-    }
 
     @Composable
     fun UnderlineTextField(
@@ -300,6 +362,6 @@ class PasswordActivity : ComponentActivity() {
             )
         }
     }
-}
+
 
 
