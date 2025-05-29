@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.ui.theme.SuperIdTheme
@@ -112,7 +113,7 @@ class CategoryActivity : ComponentActivity() {
                     .shadow(
                         elevation = 8.dp,
                         shape = RoundedCornerShape(16),
-                        ambientColor = cinzaclaro, // Roxo mais claro para a sombra
+                        ambientColor = cinzaclaro,
                         spotColor = cinzaescuro
 
                     )
@@ -200,7 +201,7 @@ class CategoryActivity : ComponentActivity() {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                label = { Text(label) },
+                label = { Text(label, fontWeight = FontWeight.Bold) },
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
