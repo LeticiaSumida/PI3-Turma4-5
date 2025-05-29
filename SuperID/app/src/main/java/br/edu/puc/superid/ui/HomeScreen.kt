@@ -1,6 +1,7 @@
 package br.edu.puc.superid.ui
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,13 +49,24 @@ import br.edu.puc.superid.SignInWithoutPass
 import br.edu.puc.superid.SignUpActivity
 import br.edu.puc.superid.ui.theme.branco
 import br.edu.puc.superid.ui.theme.roxo
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 
 @Composable
 fun HomePage(){
     var context = LocalContext.current
     var mostrarDialogoSenha by remember { mutableStateOf(false) }
-    var expanded2 by remember { mutableStateOf(false) }
+    var verificado by remember {mutableStateOf(false)}
+    var expanded2 by remember { mutableStateOf(false)}
+
+    LaunchedEffect(Unit) {
+        checarVerificado { resultado, _ ->
+            verificado = resultado
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -117,7 +130,9 @@ fun HomePage(){
         Spacer(modifier = Modifier.height(48.dp))
 
         Button(
-            onClick = { mostrarDialogoSenha = true },
+            enabled = verificado,
+            onClick = {
+                if (verificado){mostrarDialogoSenha = true } },
             colors = ButtonDefaults.buttonColors(containerColor = roxo),
             modifier = Modifier
                 .fillMaxWidth()
@@ -152,7 +167,7 @@ fun HomePage(){
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
+        if(!verificado){ Toast.makeText(context, "Verifique seu email para usar o login sem senha", Toast.LENGTH_LONG).show()}
         Button(
             onClick = {
                 val intent = Intent(context, CategoriesScreenActivity::class.java)
@@ -211,3 +226,20 @@ fun HomePage(){
 fun HomePagePreview() {
     HomePage()
 }
+
+fun checarVerificado(callback: (Boolean, String) -> Unit){
+    val db = Firebase.firestore
+    val user = Firebase.auth.currentUser
+    val uid = user!!.uid
+    db.collection("Usuario").document(uid).get()
+        .addOnSuccessListener { document ->
+            if (document != null){
+                val verificado = document.getBoolean("emailVerificado") ?: false
+                callback(verificado, if (verificado) "Email verificado" else "Email não verificado")
+            } else{
+                callback(false, "Documento não encontrado")
+            }
+        }
+        .addOnFailureListener {  e ->
+            callback(false, "Erro ao acessar o Firestore: ${e.message}")
+}}
