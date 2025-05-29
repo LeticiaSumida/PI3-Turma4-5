@@ -81,7 +81,6 @@ class SignInActivity : ComponentActivity() {
         var isLoading by remember { mutableStateOf(false) }
         val context = LocalContext.current
         var esqueciSenhaModal by remember { mutableStateOf(false) }
-        var senhaVisibilidade by remember { mutableStateOf(false) }
 
 
         Column(
@@ -96,22 +95,17 @@ class SignInActivity : ComponentActivity() {
                 painter = painterResource(id = R.drawable.cadeado3),
                 contentDescription = null,
                 modifier = Modifier
-                .size(300.dp)
-                .padding(start = 40.dp)
+                    .size(300.dp)
+                    .padding(start = 40.dp)
 
             )
             Text(
-                "Login",
-                modifier = Modifier,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
+                "Login", modifier = Modifier, fontSize = 28.sp, fontWeight = FontWeight.Bold
 
             )
 
             UnderlineTextField(
-                value = email,
-                onValueChange = {email = it},
-                label = "Email"
+                value = email, onValueChange = { email = it }, label = "Email"
             )
 
             UnderlineTextField(
@@ -119,8 +113,6 @@ class SignInActivity : ComponentActivity() {
                 onValueChange = { senha = it },
                 label = "Senha Mestre",
             )
-
-
 
             if (erroMensagem != null) {
                 Text(
@@ -165,14 +157,13 @@ class SignInActivity : ComponentActivity() {
                                 erroMensagem = "Email ou senha incorretos."
                             }
                         }
-                        checarVerificacao{verificado, erro ->
-                            if(erro != null){
+                        checarVerificacao { verificado, erro ->
+                            if (erro != null) {
                                 Log.d(TAG, "Erro ao verificar email $erro")
                             } else {
-                                if(verificado){
+                                if (verificado) {
                                     Log.d(TAG, "Email esta verificado")
-                                }
-                                else{
+                                } else {
                                     Log.d(TAG, "Email nao esta verificado")
                                 }
                             }
@@ -190,54 +181,48 @@ class SignInActivity : ComponentActivity() {
                             spotColor = cinzaescuro
 
                         )
-                )
-                 {
-                    Text("Logar", color= branco)
+                ) {
+                    Text("Logar", color = branco)
 
                 }
-                Row(){
+                Row() {
                     Text("Esqueci minha ")
-                    Text("senha",
-                        color = roxo,
-                        modifier = Modifier
-                            .clickable(
-                            onClick = { esqueciSenhaModal = true
-                            },
+                    Text(
+                        "senha", color = roxo, modifier = Modifier.clickable(
+                            onClick = {
+                                esqueciSenhaModal = true
+                                },
+                            )
+                    )
 
-                        ))
-
-                    if (esqueciSenhaModal){
+                    if (esqueciSenhaModal) {
                         ModalTextField(
                             type = MessageType.EMAIL,
-                            titulo =  "Esqueceu sua senha?",
-                            mensagem= "Digite seu email e enviaremos um link para redefinir sua senha mestre",
-                            caminhoBotao2= {esqueciSenhaModal = false},
-                            textoBotao1= "Enviar link de redefinição",
-                            textoBotao2= "Cancelar",
-                            onDismiss= { esqueciSenhaModal = false })
+                            titulo = "Esqueceu sua senha?",
+                            mensagem = "Digite seu email e enviaremos um link para redefinir sua senha mestre",
+                            caminhoBotao2 = { esqueciSenhaModal = false },
+                            textoBotao1 = "Enviar link de redefinição",
+                            textoBotao2 = "Cancelar",
+                            onDismiss = { esqueciSenhaModal = false })
                     }
                 }
             }
 
-            Row(){
-            Text("Ainda não tem conta? ")
-            Text("Cadastre-se",
-                color = roxo,
-                modifier = Modifier.clickable(
+            Row() {
+                Text("Ainda não tem conta? ")
+                Text(
+                    "Cadastre-se", color = roxo, modifier = Modifier.clickable(
                     onClick = {
                         val intent = Intent(context, SignUpActivity::class.java)
                         context.startActivity(intent)
                         finish()
-                    }
-                ))}
+                    }))
+            }
         }
     }
 
 
-
-
-
-    fun checarVerificacao(callback: (Boolean, String?) -> Unit){
+    fun checarVerificacao(callback: (Boolean, String?) -> Unit) {
         val user = FirebaseAuth.getInstance().currentUser
         val db = Firebase.firestore
 
@@ -246,16 +231,18 @@ class SignInActivity : ComponentActivity() {
             user.reload().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     var isverified = user.isEmailVerified
-                    if(isverified){
-                        db.collection("Usuario").document(uid)
-                            .update("emailVerificado", true)
+                    if (isverified) {
+                        db.collection("Usuario").document(uid).update("emailVerificado", true)
                             .addOnSuccessListener {
-                                Log.d(TAG, "Campo emailVerificado atualizado com sucesso no Firestore")
-                            }
-                            .addOnFailureListener { e ->
+                                Log.d(
+                                    TAG, "Campo emailVerificado atualizado com sucesso no Firestore"
+                                )
+                            }.addOnFailureListener { e ->
                                 Log.w(TAG, "Erro ao atualizar emailVerificado no Firestore", e)
                             }
-                    } else{callback(isverified, null)}
+                    } else {
+                        callback(isverified, null)
+                    }
 
                 } else {
                     callback(false, task.exception?.message)
@@ -265,7 +252,6 @@ class SignInActivity : ComponentActivity() {
             callback(false, "Usuário não autenticado")
         }
     }
-
 
 
     fun isValidEmail(email: String?): Boolean {
@@ -291,17 +277,13 @@ class SignInActivity : ComponentActivity() {
     }
 
 
-
-
     @Composable
     fun UnderlineTextField(
-        value: String,
-        onValueChange: (String) -> Unit,
-        label: String
+        value: String, onValueChange: (String) -> Unit, label: String
     ) {
         var senhaVisibilidade by remember { mutableStateOf(false) }
 
-        if (label == "Senha Mestre"){
+        if (label == "Senha Mestre") {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
@@ -322,37 +304,34 @@ class SignInActivity : ComponentActivity() {
                     .padding(vertical = 10.dp, horizontal = 30.dp),
                 visualTransformation = if (senhaVisibilidade) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val image = if (senhaVisibilidade)
-                        Icons.Default.Visibility
-                    else
-                        Icons.Default.VisibilityOff
+                    val image = if (senhaVisibilidade) Icons.Default.Visibility
+                    else Icons.Default.VisibilityOff
 
                     IconButton(onClick = { senhaVisibilidade = !senhaVisibilidade }) {
                         Icon(imageVector = image, contentDescription = null)
                     }
-                }
+                })
+        } else {
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { Text(label) },
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    disabledTextColor = Color.LightGray,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Gray,
+                    unfocusedIndicatorColor = Color.Gray,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 30.dp)
             )
         }
-        else{
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = { Text(label) },
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                disabledTextColor = Color.LightGray,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Gray,
-                unfocusedIndicatorColor = Color.Gray,
-                disabledIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp, horizontal = 30.dp)
-        )}
 
     }
 }

@@ -266,10 +266,6 @@ class CategoriesScreenActivity : ComponentActivity() {
 
 
 
-
-
-
-
     @Composable
     fun expandableCard(categoria: String, onCategoriaRemovida: () -> Unit) {
         val context = LocalContext.current

@@ -32,7 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.CategoriesScreenActivity
 import br.edu.puc.superid.R
+import br.edu.puc.superid.SignInActivity
 import br.edu.puc.superid.SignInWithoutPass
+import br.edu.puc.superid.SignUpActivity
 
 @Composable
 fun HomePage() {
@@ -142,16 +144,19 @@ fun HomePage() {
     }
 
     if (mostrarDialogoSenha) {
-        ConfirmarSenhaEIrParaCamera(
-            onSenhaConfirmada = {
+        ModalTextField(
+            type = MessageType.PASSWORD,
+            titulo = "Confirme sua \n Senha Mestre",
+            mensagem = "",
+            caminhoBotao2 = {
                 mostrarDialogoSenha = false
-                context.startActivity(Intent(context, SignInWithoutPass::class.java))
             },
-            onCancelar = { mostrarDialogoSenha = false }
+            textoBotao1 = "Confirmar",
+            textoBotao2 = "Cancelar",
+            onDismiss = { mostrarDialogoSenha = false }
         )
     }
 }
-
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

@@ -131,8 +131,6 @@ class SignUpActivity : ComponentActivity() {
                 value = senha,
                 onValueChange = { senha = it },
                 label = "Senha Mestre",
-
-
             )
 
             if (erroMensagem != null) {
@@ -220,17 +218,13 @@ class SignUpActivity : ComponentActivity() {
                     type = MessageType.SUCCESS,
                     titulo = "Cadastro realizado",
                     mensagem = "Seu cadastro foi concluído com sucesso!",
-                    textoBotao1 = "Ir para Login",
-                    textoBotao2 = "Fechar",
-                    caminhoBotao1 = {
+                    textoBotao = "Ir para Login",
+                    caminhoBotao = {
                         showSuccessDialog = false
 
                         val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
                         startActivity(intent)
                         finish()
-                    },
-                    caminhoBotao2 = {
-                        showSuccessDialog = false
                     },
                     onDismiss = {
                         showSuccessDialog = false

@@ -1,8 +1,8 @@
 package br.edu.puc.superid.ui
 
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,9 +14,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,7 +30,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.R
+import br.edu.puc.superid.SignInWithoutPass
 import br.edu.puc.superid.ui.theme.branco
 import br.edu.puc.superid.ui.theme.cinzaclaro
 import br.edu.puc.superid.ui.theme.cinzaescuro
@@ -44,37 +46,49 @@ import com.google.firebase.firestore.firestore
 
 private val TAG = "MODALSCREEN"
 
+enum class MessageType {
+    SUCCESS,
+    ERROR,
+    EMAIL,
+    PASSWORD
+}
+
 @Composable
 fun MessageDialog(
     type: MessageType,
     titulo: String,
     mensagem: String,
-    caminhoBotao1: () -> Unit,
-    caminhoBotao2: () -> Unit,
-    textoBotao1: String,
-    textoBotao2: String,
+    caminhoBotao: () -> Unit,
+    textoBotao: String,
     onDismiss: () -> Unit = {}
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
+
         title = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
+
                 Text(text = titulo)
+
                 Spacer(modifier = Modifier.height(8.dp))
+
                 val imageRes = when (type) {
                     MessageType.SUCCESS -> R.drawable.check
                     MessageType.ERROR -> R.drawable.erro
                     MessageType.EMAIL -> R.drawable.email
                     else -> R.drawable.imagem_default
                 }
+
                 Image(
                     painter = painterResource(id = imageRes),
                     contentDescription = type.name,
                     modifier = Modifier.size(100.dp)
                 )
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
         },
         text = {
@@ -89,39 +103,29 @@ fun MessageDialog(
                         .align(Alignment.CenterHorizontally)
                 )
                 Button(
-                    onClick = caminhoBotao1,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xff000000)
-                    ),
+                    onClick = caminhoBotao,
+                    colors = ButtonDefaults.buttonColors(containerColor = branco),
+                    shape = RoundedCornerShape(16),
                     modifier = Modifier
-                        .padding(vertical = 4.dp)
-                        .align(Alignment.CenterHorizontally)
-                ) {
-                    Text(text = textoBotao1)
-                }
-                Button(
-                    onClick = caminhoBotao2,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xff000000)
-                    ),
-                    modifier = Modifier
-                        .padding(vertical = 4.dp)
-                        .align(Alignment.CenterHorizontally)
-                ) {
-                    Text(text = textoBotao2)
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp, horizontal = 12.dp)
+                        .shadow(
+                            elevation = 8.dp,
+                            shape = RoundedCornerShape(16),
+                            ambientColor = cinzaclaro, // Roxo mais claro para a sombra
+                            spotColor = cinzaescuro
+
+                        )
+                )
+
+                {
+                    Text(text = textoBotao, color = preto)
                 }
             }
         },
         confirmButton = {},
         dismissButton = {}
     )
-}
-
-enum class MessageType {
-    SUCCESS,
-    ERROR,
-    EMAIL,
-    PASSWORD
 }
 
 @Preview(showBackground = true)
@@ -132,10 +136,8 @@ fun PreviewMessageDialogSuccess() {
         titulo = "Cadastro realizado com sucesso !!",
         mensagem = "Enviamos um email de verificação para você \n" +
                 "Verifique sua caixa de entrada e clique no link para validar sua conta.",
-        caminhoBotao1 = {},
-        caminhoBotao2 = {},
-        textoBotao1 = "Ir para o login",
-        textoBotao2 = "Realizar outro cadastro"
+        caminhoBotao = {},
+        textoBotao = "Ir para o login",
     )
 }
 
@@ -152,13 +154,10 @@ fun ModalTextField(
     var context = LocalContext.current
     var erroBoolean by remember { mutableStateOf(false) }
     var sucessBoolean by remember { mutableStateOf(false) }
-    val mensagemErro = remember { mutableStateOf("") }
-    var (email2, setEmail) = androidx.compose.runtime.remember {
-        androidx.compose.runtime.mutableStateOf("")
-    }
-    var (password, setPassword) = androidx.compose.runtime.remember {
-        androidx.compose.runtime.mutableStateOf("")
-    }
+    var mensagemErro = remember { mutableStateOf<String?>(null) }
+    var shouldNavigate by remember { mutableStateOf(false) }
+    var (email2, setEmail) = androidx.compose.runtime.remember { mutableStateOf("") }
+    var (password, setPassword) = androidx.compose.runtime.remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -196,16 +195,65 @@ fun ModalTextField(
                             label = { Text("Senha Mestre") },
                             visualTransformation = PasswordVisualTransformation()
                         )
+
+                        mensagemErro.value?.let { mensagem ->
+                            Text(
+                                text = mensagem,
+                                color = Color.Red,
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .align(Alignment.CenterHorizontally)
+                            )
+                        }
+
                         Button(
-                            onClick = { /*TODO*/ },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xff000000)
-                            ),
+                            onClick = {
+                                val user = FirebaseAuth.getInstance().currentUser
+                                val email = user?.email.orEmpty()
+
+                                if (user != null && email.isNotBlank() && password.isNotBlank()) {
+                                    val credential =
+                                        EmailAuthProvider.getCredential(email, password)
+
+                                    user.reauthenticate(credential)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                mensagemErro.value = null
+                                                shouldNavigate = true
+                                            } else {
+                                                mensagemErro.value = "Senha Mestre Inválida"
+                                            }
+                                        }
+                                } else {
+                                    mensagemErro.value = "Preencha o campo acima"
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = roxo),
+                            shape = RoundedCornerShape(16),
                             modifier = Modifier
-                                .padding(vertical = 4.dp)
-                                .align(Alignment.CenterHorizontally)
+                                .fillMaxWidth()
+                                .padding(top = 10.dp)
+                                .padding(horizontal = 12.dp)
+                                .shadow(
+                                    elevation = 8.dp,
+                                    shape = RoundedCornerShape(16),
+                                    ambientColor = cinzaclaro,
+                                    spotColor = cinzaescuro
+                                )
                         ) {
                             Text(text = textoBotao1)
+                        }
+
+                        if (shouldNavigate) {
+                            LaunchedEffect(Unit) {
+                                context.startActivity(
+                                    Intent(
+                                        context,
+                                        SignInWithoutPass::class.java
+                                    )
+                                )
+                            }
                         }
                     }
 
@@ -218,22 +266,40 @@ fun ModalTextField(
                             onValueChange = setEmail,
                             label = { Text("Email") }
                         )
+
+                        mensagemErro.value?.let { mensagem ->
+                            Text(
+                                text = mensagem,
+                                color = Color.Red,
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .align(Alignment.CenterHorizontally)
+                            )
+                        }
+
                         Button(
                             onClick = {
-                                if (isValidEmail(email2)) {
-                                    esqueciSenha(email2) { sucesso, mensagem ->
-                                        if (sucesso) {
-                                            mensagemErro.value = mensagem
-                                            sucessBoolean = true
+                                if (email2.isNotBlank()) {
+                                    if (isValidEmail(email2)) {
+                                        esqueciSenha(email2) { sucesso, mensagem ->
+                                            if (sucesso) {
+                                                mensagemErro.value = mensagem
+                                                sucessBoolean = true
 
-                                        } else {
-                                            mensagemErro.value = mensagem
-                                            erroBoolean = true
+                                            } else {
+                                                mensagemErro.value = mensagem
+                                                erroBoolean = true
+                                            }
                                         }
+                                    } else {
+                                        Log.d(TAG, "Formato invalido")
+                                        mensagemErro.value = "Formato de Email Inválido"
                                     }
                                 } else {
-                                    Log.d(TAG, "Formato invalido")
-                                }},
+                                    mensagemErro.value = "Preencha o campo acima"
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(containerColor = roxo),
                             shape = RoundedCornerShape(16),
                             modifier = Modifier
@@ -247,36 +313,47 @@ fun ModalTextField(
                                     spotColor = cinzaescuro
 
                                 )
-                        ){
+                        ) {
                             Text(text = textoBotao1, color = branco)
                         }
                         if (erroBoolean) {
-                            ModalErrorMessage(
+                            MessageDialog(
                                 type = MessageType.ERROR,
                                 titulo = "Email nao enviado",
-                                mensagem = mensagemErro.value,
-                                botao = { erroBoolean = false },
-                                textobotao = "Fechar",
-                                onDismiss = { erroBoolean = false }
+                                mensagem = mensagemErro.value.toString(),
+                                caminhoBotao = {
+                                    erroBoolean = false
+                                    onDismiss()
+                                               },
+                                textoBotao = "Fechar",
+                                onDismiss = {
+                                    erroBoolean = false
+                                    onDismiss()
+                                }
                             )
                         }
                         if (sucessBoolean) {
-                            ModalErrorMessage(
+                            MessageDialog(
                                 type = MessageType.SUCCESS,
                                 titulo = "Email enviado com sucesso",
-                                mensagem = mensagemErro.value,
-                                botao = { sucessBoolean = false },
-                                textobotao = "Fechar",
-                                onDismiss = { sucessBoolean = false }
+                                mensagem = mensagemErro.value.toString(),
+                                caminhoBotao = {
+                                    sucessBoolean = false
+                                    onDismiss()
+                                               },
+                                textoBotao = "Fechar",
+                                onDismiss = {
+                                    sucessBoolean = false
+                                    onDismiss()
+                                }
                             )
                         }
                     }
 
                     else -> {
-                        Text("")
+                        Text("TYPE INVALIDO")
                     }
                 }
-
 
                 Button(
                     onClick = caminhoBotao2,
@@ -290,7 +367,6 @@ fun ModalTextField(
                             shape = RoundedCornerShape(16),
                             ambientColor = cinzaclaro, // Roxo mais claro para a sombra
                             spotColor = cinzaescuro
-
                         )
                 ) {
                     Text(text = textoBotao2, color = roxo)
@@ -302,9 +378,10 @@ fun ModalTextField(
     )
 }
 
-
-fun esqueciSenha(email: String,
-                 callback: (Boolean, String) -> Unit){
+fun esqueciSenha(
+    email: String,
+    callback: (Boolean, String) -> Unit
+) {
 
     val db = Firebase.firestore
 
@@ -352,59 +429,6 @@ fun esqueciSenha(email: String,
 
 }
 
-
-@Composable
-fun ConfirmarSenhaEIrParaCamera(
-    onSenhaConfirmada: () -> Unit,
-    onCancelar: () -> Unit
-) {
-    var senha by remember { mutableStateOf("") }
-    var erro by remember { mutableStateOf<String?>(null) }
-
-    AlertDialog(
-        onDismissRequest = onCancelar,
-        title = { Text("Confirme sua senha") },
-        text = {
-            Column {
-                Text("Digite sua senha para confirmar.")
-                Spacer(Modifier.height(8.dp))
-                TextField(
-                    value = senha,
-                    onValueChange = { senha = it },
-                    label = { Text("Senha") },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val user = FirebaseAuth.getInstance().currentUser
-                val email = user?.email
-                if (user != null && email != null) {
-                    val credential = EmailAuthProvider.getCredential(email, senha)
-                    user.reauthenticate(credential)
-                        .addOnSuccessListener {
-                            onSenhaConfirmada()
-                        }
-                        .addOnFailureListener { e ->
-                            erro = "Senha incorreta: ${e.message}"
-                        }
-                } else {
-                    erro = "Usuário não autenticado."
-                }
-            }) {
-                Text("Confirmar")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onCancelar) {
-                Text("Cancelar")
-            }
-        }
-    )
-}
-
 fun isValidEmail(email: String?): Boolean {
     if (email == null) return false
 
@@ -412,75 +436,4 @@ fun isValidEmail(email: String?): Boolean {
         "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
     val pattern = Regex(EMAIL_PATTERN)
     return pattern.matches(email)
-}
-
-@Composable
-fun ModalErrorMessage(
-    type: MessageType,
-    titulo: String,
-    mensagem: String,
-    botao: () -> Unit,
-    textobotao: String,
-    onDismiss: () -> Unit
-
-) {
-
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-
-        title = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-
-            ) {
-
-                Text(text = titulo)
-
-                val imageRes = when (type) {
-                    MessageType.SUCCESS -> R.drawable.check
-                    MessageType.ERROR -> R.drawable.erro
-                    else -> R.drawable.imagem_default
-                }
-                Image(
-                    painter = painterResource(id = imageRes),
-                    contentDescription = type.name,
-                    modifier = Modifier.size(100.dp),
-
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        },
-        text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()){
-                Text(text=mensagem)
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = botao,
-                    colors = ButtonDefaults.buttonColors(containerColor = branco),
-                    shape = RoundedCornerShape(16),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp, horizontal = 12.dp)
-                        .shadow(
-                            elevation = 8.dp,
-                            shape = RoundedCornerShape(16),
-                            ambientColor = cinzaclaro, // Roxo mais claro para a sombra
-                            spotColor = cinzaescuro
-
-                        )
-                )
-
-                {
-                    Text(text = textobotao, color = preto)
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {}
-
-    )
 }
