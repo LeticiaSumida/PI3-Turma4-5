@@ -1,53 +1,105 @@
 package br.edu.puc.superid
 
-import android.Manifest
 import android.os.Bundle
-import android.widget.Toast
+import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import br.edu.puc.superid.permissions.CameraXScreen
+import br.edu.puc.superid.permissions.TelaSolicitaPermissaoCamera
 import br.edu.puc.superid.ui.theme.SuperIdTheme
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.firestore
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 class SignInWithoutPass : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             SuperIdTheme {
-                TelaSolicitaPermissaoCamera()
+                TelaSolicitaPermissaoCamera(
+                    onPermissionGranted = { startBarcodeScanner() }
+                )
             }
         }
     }
 
+    private fun startBarcodeScanner() {
+        val options = GmsBarcodeScannerOptions.Builder().build()
+        val scanner = GmsBarcodeScanning.getClient(this, options)
 
-    @Composable
-    fun TelaSolicitaPermissaoCamera() {
-        val context = LocalContext.current
-        var permissaoConcedida by remember { mutableStateOf(false) }
-
-        val launcher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission()
-        ) { granted ->
-            permissaoConcedida = granted
-            if (!granted) {
-                Toast.makeText(context, "Permissão negada", Toast.LENGTH_SHORT).show()
+        scanner.startScan()
+            .addOnSuccessListener { barcode ->
+                val loginToken = barcode.rawValue
+                if (!loginToken.isNullOrEmpty()) {
+                    updateLoginDocument(loginToken)
+                } else {
+                    showFailurePopup("QR Code inválido: Token vazio")
+                }
             }
+            .addOnCanceledListener {
+                showFailurePopup("Escaneamento de QR Code cancelado.")
+            }
+            .addOnFailureListener { e ->
+                Log.e("QRCODE_SCANNER", "Erro ao escanear QR Code: ${e.message}")
+                showFailurePopup("Erro ao escanear QR Code!")
+            }
+    }
+
+
+    private fun updateLoginDocument(loginToken: String) {
+        val db = Firebase.firestore
+        val currentUser = Firebase.auth.currentUser
+
+        if (currentUser == null) {
+            showFailurePopup("Usuário não autenticado no aplicativo.")
+            return
         }
 
-        LaunchedEffect(Unit) {
-            launcher.launch(Manifest.permission.CAMERA)
-        }
+        val userUid = currentUser.uid
+        val loginDocRef = db.collection("login").document(loginToken)
 
-        if (permissaoConcedida) {
-            CameraXScreen(activity = this@SignInWithoutPass)
-        }
+        val updates = hashMapOf<String, Any>(
+            "user" to userUid,
+            "loggedInAt" to FieldValue.serverTimestamp()
+        )
+
+        loginDocRef.update(updates)
+            .addOnSuccessListener {
+                Log.d("FIRESTORE", "Documento de login atualizado com sucesso para token: $loginToken com UID: $userUid")
+                showSuccessPopup("Login realizado com sucesso via QR Code!")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FIRESTORE", "Erro ao atualizar documento de login: ${e.message}", e)
+                showFailurePopup("Erro ao finalizar login via QR Code!")
+            }
+    }
+
+    private fun showSuccessPopup(message: String) {
+//        setContent {
+//            SuperIdTheme {
+//                PopUpScreen(message, Icons.Default.CheckCircle, MaterialTheme.colorScheme.primary) {
+//                    setResult(RESULT_OK)
+                    finish()
+//                }
+//            }
+//        }
+    }
+
+    private fun showFailurePopup(message: String) {
+//        setContent {
+//            SuperIdTheme {
+//                AutoDismissPopup(
+//                    message = message,
+//                    icon = Icons.Default.Cancel,
+//                    iconColor = MaterialTheme.colorScheme.error
+//                ) {
+//                    setResult(RESULT_CANCELED)
+                    finish()
+//                }
+//            }
+//        }
     }
 }

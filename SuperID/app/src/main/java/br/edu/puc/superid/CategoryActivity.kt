@@ -42,7 +42,8 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 
 private lateinit var auth: FirebaseAuth
-private val TAG=  "CategoryActivityLOG"
+private val TAG = "CategoryActivityLOG"
+
 class CategoryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,11 +70,13 @@ class CategoryActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
 
-            ) {
-            Text("Nova categoria:",
+        ) {
+            Text(
+                "Nova categoria:",
                 modifier = Modifier
                     .padding(bottom = 30.dp),
-                fontSize = 28.sp)
+                fontSize = 28.sp
+            )
             UnderlineTextField(
                 value = categoria,
                 onValueChange = { categoria = it },
@@ -91,12 +94,17 @@ class CategoryActivity : ComponentActivity() {
                     checarCategoria(categoria) { categoriaexistente ->
                         if (categoriaexistente) {
                             Log.w(TAG, "Categoria ja cadastrada")
-                            Toast.makeText(context, "Categoria ja cadastrada", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Categoria ja cadastrada", Toast.LENGTH_SHORT)
+                                .show()
                             erroCategoria = true
                         } else {
                             addFirestoreCategoria(categoria)
                             Log.d(TAG, "Categoria criada com sucesso")
-                            Toast.makeText(context, "Categoria criada com sucesso", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Categoria criada com sucesso",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             categorias.add(categoria)
                             categoria = ""
 
@@ -118,11 +126,14 @@ class CategoryActivity : ComponentActivity() {
 
                     )
             ) {
-                Text("Cadastrar",
-                modifier = Modifier,
+                Text(
+                    "Cadastrar",
+                    modifier = Modifier,
 
-                color = branco)
+                    color = branco
+                )
             }
+
             Button(
 
 
@@ -143,13 +154,13 @@ class CategoryActivity : ComponentActivity() {
 
                     )
             ) {
-                Text("Ver categorias",
-                    color = roxo)
+                Text(
+                    "Ver categorias",
+                    color = roxo
+                )
             }
-
-            }
-
         }
+    }
 
 
     fun addFirestoreCategoria(categoria: String) {
@@ -198,29 +209,26 @@ class CategoryActivity : ComponentActivity() {
         label: String = "Categoria"
     ) {
 
-            TextField(
-                value = value,
-                onValueChange = onValueChange,
-                label = { Text(label, fontWeight = FontWeight.Bold) },
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.LightGray,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Gray,
-                    unfocusedIndicatorColor = Color.Gray,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp, horizontal = 30.dp)
-            )
-
-        }
-
-
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label, fontWeight = FontWeight.Bold) },
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                disabledTextColor = Color.LightGray,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Gray,
+                unfocusedIndicatorColor = Color.Gray,
+                disabledIndicatorColor = Color.Transparent
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp, horizontal = 30.dp)
+        )
+    }
 }
 
 

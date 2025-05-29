@@ -6,7 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,7 +40,6 @@ import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
 import br.edu.puc.superid.ui.theme.cinzaclaro
 import br.edu.puc.superid.ui.theme.cinzaescuro
-import br.edu.puc.superid.ui.theme.preto
 import br.edu.puc.superid.ui.theme.roxo
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -50,7 +48,8 @@ import com.google.firebase.firestore.firestore
 
 
 private lateinit var auth: FirebaseAuth
-private val TAG=  "PasswordActivityLOG"
+private val TAG = "PasswordActivityLOG"
+
 class PasswordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,13 +85,14 @@ class PasswordActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
 
-            ) {
+        ) {
             Text(
                 "Nova Senha:",
                 modifier = Modifier,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
+
             UnderlineTextField(
                 value = login,
                 onValueChange = { login = it },
@@ -104,20 +104,27 @@ class PasswordActivity : ComponentActivity() {
                 onValueChange = { senha = it },
                 label = "Senha",
 
-            )
+                )
+
             UnderlineTextField(
                 value = desc,
                 onValueChange = { desc = it },
                 label = "Descrição"
 
             )
+
             DropDownCategoria(
                 categorias = categorias,
                 categoriaSelecionada = categoriaSelecionada,
-                onCategoriaSelecionadaChange = { categoriaSelecionada = it })
-            HorizontalDivider(thickness = 0.5.dp,
-            modifier = Modifier.padding(horizontal = 33.dp),
-            color = Color.Gray )
+                onCategoriaSelecionadaChange = { categoriaSelecionada = it }
+            )
+
+            HorizontalDivider(
+                thickness = 0.5.dp,
+                modifier = Modifier.padding(horizontal = 33.dp),
+                color = Color.Gray
+            )
+
             TextButton(
                 onClick = {
                     addFirestoreSenha(login, senha, desc, categoriaSelecionada)
@@ -136,20 +143,13 @@ class PasswordActivity : ComponentActivity() {
                         spotColor = cinzaescuro
 
                     )
-
-
-
-                ) {
+            ) {
                 Text(
                     "Cadastrar",
                     color = branco
                 )
             }
-
-
-
         }
-
     }
 
     @Composable
@@ -160,10 +160,9 @@ class PasswordActivity : ComponentActivity() {
     ) {
         var expanded by remember { mutableStateOf(false) }
 
-
         TextButton(
             modifier = Modifier
-                .padding(top =  10.dp)
+                .padding(top = 10.dp)
                 .padding(horizontal = 33.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(10),
@@ -192,17 +191,14 @@ class PasswordActivity : ComponentActivity() {
             ) {
                 Text(
                     categoriaSelecionada,
-                    modifier = Modifier.align(Alignment.CenterVertically)
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
                         .padding(vertical = 10.dp),
                     color = cinzaclaro,
                     fontSize = 17.sp
                 )
-
             }
-
         }
-
-
     }
 
     fun addFirestoreSenha(login: String, senha: String, desc: String, categoria: String) {
@@ -227,15 +223,12 @@ class PasswordActivity : ComponentActivity() {
             .addOnFailureListener { e ->
                 Log.w("Firestore", "Erro ao adicionar documento", e)
             }
-
-
     }
 
     fun carregarCategorias(categorias: SnapshotStateList<String>) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
         val uid = user!!.uid
-
 
         db.collection("Usuario").document(uid).collection("categorias")
             .get()
@@ -283,7 +276,7 @@ class PasswordActivity : ComponentActivity() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp, horizontal = 30.dp),
-                    visualTransformation = PasswordVisualTransformation()
+                visualTransformation = PasswordVisualTransformation()
             )
         } else {
             TextField(
@@ -305,10 +298,7 @@ class PasswordActivity : ComponentActivity() {
                     .fillMaxWidth()
                     .padding(vertical = 10.dp, horizontal = 30.dp)
             )
-
         }
-
-
     }
 }
 

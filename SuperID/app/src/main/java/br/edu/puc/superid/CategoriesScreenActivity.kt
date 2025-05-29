@@ -112,12 +112,10 @@ class CategoriesScreenActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                ){
-                val scrollState = rememberScrollState()
-                CategoriaNaTela(scrollState)
+                ) {
+                    val scrollState = rememberScrollState()
+                    CategoriaNaTela(scrollState)
                 }
-
-
             }
         }
     }
@@ -127,19 +125,15 @@ class CategoriesScreenActivity : ComponentActivity() {
         var senha: String
     )
 
-
     @Composable
     fun CategoriaNaTela(scrollState: ScrollState) {
         val categorias = remember { mutableStateListOf<String>() }
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
         val systemUiController = rememberSystemUiController()
-        var expanded by remember {mutableStateOf(false)}
-        var expanded2 by remember {mutableStateOf(false)}
-        var home by remember {mutableStateOf(false)}
-
-
-
+        var expanded by remember { mutableStateOf(false) }
+        var expanded2 by remember { mutableStateOf(false) }
+        var home by remember { mutableStateOf(false) }
 
         SideEffect {
             systemUiController.setStatusBarColor(
@@ -165,8 +159,6 @@ class CategoriesScreenActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(16.dp)
-
         ) {
             Box(
                 modifier = Modifier
@@ -174,15 +166,17 @@ class CategoriesScreenActivity : ComponentActivity() {
                     .height(70.dp)
                     .background(roxo)
             )
-            Row(modifier = Modifier.padding(vertical = 20.dp),
-                verticalAlignment = Alignment.CenterVertically){
-                IconButton(onClick = { expanded2 = !expanded2}
+            Row(
+                modifier = Modifier.padding(vertical = 20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { expanded2 = !expanded2 }
                 ) {
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = "Sign-Out",
                         tint = branco,
-                        )
+                    )
                 }
                 DropdownMenu(
                     expanded = expanded2,
@@ -198,8 +192,14 @@ class CategoriesScreenActivity : ComponentActivity() {
                     )
                     DropdownMenuItem(
                         text = { Text("Logout") },
-                        leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
-                        onClick = { FirebaseAuth.getInstance().signOut()
+                        leadingIcon = {
+                            Icon(
+                                Icons.AutoMirrored.Outlined.Logout,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            FirebaseAuth.getInstance().signOut()
                             val intent = Intent(context, SignInActivity::class.java)
                             context.startActivity(intent)
                             finish()
@@ -207,10 +207,9 @@ class CategoriesScreenActivity : ComponentActivity() {
                     )
                 }
                 Text("SuperID", color = branco)
-
             }
 
-            if(home){
+            if (home) {
                 HomePage()
                 finish()
             }
@@ -248,13 +247,11 @@ class CategoriesScreenActivity : ComponentActivity() {
             }
 
             val transition = updateTransition(targetState = expanded, label = "transition")
-            val rotation by transition.animateFloat (label = "rotation") { if (it) 315f else 0f }
-
-
+            val rotation by transition.animateFloat(label = "rotation") { if (it) 315f else 0f }
 
             FloatingActionButton(
-                onClick = {expanded = !expanded},
-                containerColor =  roxo,
+                onClick = { expanded = !expanded },
+                containerColor = roxo,
                 contentColor = branco,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -262,25 +259,23 @@ class CategoriesScreenActivity : ComponentActivity() {
                     .size(45.dp)
                     .rotate(rotation),
 
-            ) {
+                ) {
                 Icon(Icons.Filled.Add, "Floating action button.")
             }
 
-
-                AnimatedVisibility(
-                    visible = expanded,
-                    enter = fadeIn() + slideInVertically { fullHeight -> fullHeight / 3 } + scaleIn(),
-                    exit = fadeOut() + slideOutVertically { fullHeight -> fullHeight / 3  } + scaleOut(),
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .offset( y = (-115).dp)
-                        .padding(vertical = 2.dp)
-                        .padding(end = 20.dp)
-                ) {
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn() + slideInVertically { fullHeight -> fullHeight / 3 } + scaleIn(),
+                exit = fadeOut() + slideOutVertically { fullHeight -> fullHeight / 3 } + scaleOut(),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .offset(y = (-115).dp)
+                    .padding(vertical = 2.dp)
+                    .padding(end = 20.dp)
+            ) {
                 Column(
                     modifier = Modifier
                 ) {
-
                     ExtendedFloatingActionButton(
                         modifier = Modifier
                             .padding(start = 10.dp),
@@ -288,10 +283,10 @@ class CategoriesScreenActivity : ComponentActivity() {
                             val intent = Intent(context, CategoryActivity::class.java)
                             context.startActivity(intent)
                         }
-
                     ) {
                         Text("Nova categoria")
                     }
+
                     Spacer(modifier = Modifier.height(10.dp))
 
                     ExtendedFloatingActionButton(
@@ -303,17 +298,11 @@ class CategoriesScreenActivity : ComponentActivity() {
                         }
 
                     ) {
-                            Text("Nova senha")
+                        Text("Nova senha")
                     }
-
-
-
-
                 }
             }
-
         }
-
     }
 
     @Composable
@@ -324,9 +313,7 @@ class CategoriesScreenActivity : ComponentActivity() {
             targetValue = if (expandedState) 180f else 0f
         )
 
-
         val senhas = remember { mutableStateListOf<ContaSenha>() }
-
 
         val lifecycleOwner = LocalLifecycleOwner.current
         DisposableEffect(lifecycleOwner) {
@@ -355,7 +342,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     )
                 )
                 .shadow(
-                    elevation =12.dp,
+                    elevation = 12.dp,
                     shape = RoundedCornerShape(16),
                     ambientColor = cinzaescuro, // Roxo mais claro para a sombra
                     spotColor = preto
@@ -366,7 +353,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                 },
             colors = CardDefaults.cardColors(
                 containerColor = roxo,
-            ) ,
+            ),
             shape = RoundedCornerShape(16)
         ) {
             Column(
@@ -398,36 +385,37 @@ class CategoriesScreenActivity : ComponentActivity() {
                         text = categoria,
                         overflow = TextOverflow.Ellipsis
                     )
+
                     IconButton(
                         modifier = Modifier,
-
-
                         onClick = {
                             removerCategoriaFirestore(
                                 categoria = categoria,
                                 onSucesso = {
                                     onCategoriaRemovida()
-                                    Toast.makeText(context, "Categoria deletada", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Categoria deletada",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             )
                         }
-                    ){
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Deletar categoria",
                             tint = branco
                         )
                     }
-
-
                 }
-
                 if (expandedState) {
                     Spacer(modifier = Modifier.height(16.dp))
                     senhas.forEach { conta ->
                         mostrarSenhas(conta, senhas)
                         HorizontalDivider(
-                            Modifier.padding(horizontal = 33.dp)
+                            Modifier
+                                .padding(horizontal = 33.dp)
                                 .padding(bottom = 10.dp),
                             color = Color.LightGray
                         )
@@ -461,7 +449,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     .padding(horizontal = 30.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(5f)){
+                Column(modifier = Modifier.weight(5f)) {
                     Text(
                         if (checked) text else textMasked,
                         modifier = Modifier,
@@ -635,15 +623,16 @@ class CategoriesScreenActivity : ComponentActivity() {
     }
 
     fun removerCategoriaFirestore(
-        categoria:String,
+        categoria: String,
         onSucesso: () -> Unit,
 
-    ){
+        ) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
         val uid = user!!.uid
 
-        db.collection("Usuario").document(uid).collection("categorias").whereEqualTo("nome", categoria)
+        db.collection("Usuario").document(uid).collection("categorias")
+            .whereEqualTo("nome", categoria)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 for (document in querySnapshot) {
@@ -657,7 +646,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                         }
                 }
 
-    }   .addOnFailureListener { e ->
+            }.addOnFailureListener { e ->
                 Log.w("Firestore", "Erro ao buscar a categoria", e)
 
             }
@@ -764,7 +753,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                         modifier = Modifier.weight(2f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xff000000)
-                        ), onClick = { onDismiss()}) {
+                        ), onClick = { onDismiss() }) {
                         Text(text = textoBotao2)
                     }
                 }

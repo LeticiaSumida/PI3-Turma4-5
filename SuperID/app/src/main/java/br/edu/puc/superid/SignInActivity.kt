@@ -183,8 +183,8 @@ class SignInActivity : ComponentActivity() {
                         "senha", color = roxo, modifier = Modifier.clickable(
                             onClick = {
                                 esqueciSenhaModal = true
-                                },
-                            )
+                            },
+                        )
                     )
 
                     if (esqueciSenhaModal) {
@@ -204,11 +204,12 @@ class SignInActivity : ComponentActivity() {
                 Text("Ainda não tem conta? ")
                 Text(
                     "Cadastre-se", color = roxo, modifier = Modifier.clickable(
-                    onClick = {
-                        val intent = Intent(context, SignUpActivity::class.java)
-                        context.startActivity(intent)
-                        finish()
-                    }))
+                        onClick = {
+                            val intent = Intent(context, SignUpActivity::class.java)
+                            context.startActivity(intent)
+                            finish()
+                        })
+                )
             }
         }
     }
@@ -324,6 +325,5 @@ class SignInActivity : ComponentActivity() {
                     .padding(vertical = 10.dp, horizontal = 30.dp)
             )
         }
-
     }
 }

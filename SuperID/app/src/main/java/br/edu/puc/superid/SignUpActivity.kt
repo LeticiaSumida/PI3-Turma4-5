@@ -91,7 +91,6 @@ class SignUpActivity : ComponentActivity() {
         var erroMensagem by remember { mutableStateOf<String?>(null) }
         var isLoading by remember { mutableStateOf(false) }
         var showSuccessDialog by remember { mutableStateOf(false) }
-        var senhaVisibilidade by remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier
@@ -148,7 +147,6 @@ class SignUpActivity : ComponentActivity() {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
             } else {
                 Button(
-
                     onClick = {
                         erroMensagem = null
                         if (nome.isBlank() || email.isBlank() || senha.isBlank()) {
@@ -200,18 +198,20 @@ class SignUpActivity : ComponentActivity() {
                     Text("Cadastrar", color = branco)
                 }
             }
-            Row(){
-            Text("Já tem uma conta? ")
-            Text("Faça Login",
-                color = roxo,
-                modifier = Modifier.clickable(
-                    onClick = {
-                        val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    }
+            Row() {
+                Text("Já tem uma conta? ")
+                Text(
+                    "Faça Login",
+                    color = roxo,
+                    modifier = Modifier.clickable(
+                        onClick = {
+                            val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
 
-                ))}
+                    ))
+            }
 
             if (showSuccessDialog) {
                 MessageDialog(
@@ -273,19 +273,19 @@ class SignUpActivity : ComponentActivity() {
             .set(user)
             .addOnSuccessListener { documentReference ->
 
-
-                val categoriasPadrao = listOf( // O rf-2 solicita 3 categorias padrões sendo a Sites Web impossível de deletar
-                    mapOf("nome" to "Sites Web", "deletavel" to false),
-                    mapOf("nome" to "Aplicativos", "deletavel" to true),
-                    mapOf("nome" to "Teclados de Acesso Físico", "deletavel" to true)
-                )
+                val categoriasPadrao =
+                    listOf( // O rf-2 solicita 3 categorias padrões sendo a Sites Web impossível de deletar
+                        mapOf("nome" to "Sites Web", "deletavel" to false),
+                        mapOf("nome" to "Aplicativos", "deletavel" to true),
+                        mapOf("nome" to "Teclados de Acesso Físico", "deletavel" to true)
+                    )
 
                 for (categoria in categoriasPadrao) {
-                    db.collection("Usuario").document(uid).collection("categorias").add(categoria) //Coleção Usuario.IdDoUsuario.SubColeção Categoria
+                    db.collection("Usuario").document(uid).collection("categorias")
+                        .add(categoria) //Coleção Usuario.IdDoUsuario.SubColeção Categoria
                 }
 
                 //As senhas serão adicionadas manualmente futuramente, quando é criado um usuário apenas as categorias são obrigatórias
-
 
 
                 Log.d(TAG, "Documento adicionado com ID: $uid")
@@ -305,7 +305,11 @@ class SignUpActivity : ComponentActivity() {
                             if (emailTask.isSuccessful) {
                                 Log.d(TAG, "E-mail de verificação enviado.")
                             } else {
-                                Log.w(TAG, "Falha ao enviar e-mail de verificação", emailTask.exception)
+                                Log.w(
+                                    TAG,
+                                    "Falha ao enviar e-mail de verificação",
+                                    emailTask.exception
+                                )
                             }
                         }
 
@@ -322,6 +326,7 @@ class SignUpActivity : ComponentActivity() {
         return BCrypt.hashpw(password, BCrypt.gensalt())
 
     }
+
     @Composable
     fun UnderlineTextField(
         value: String,
@@ -330,7 +335,7 @@ class SignUpActivity : ComponentActivity() {
     ) {
         var senhaVisibilidade by remember { mutableStateOf(false) }
 
-        if (label == "Senha Mestre"){
+        if (label == "Senha Mestre") {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
@@ -361,8 +366,7 @@ class SignUpActivity : ComponentActivity() {
                     }
                 }
             )
-        }
-        else{
+        } else {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
@@ -381,8 +385,7 @@ class SignUpActivity : ComponentActivity() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp, horizontal = 30.dp)
-            )}
-
+            )
+        }
     }
-
 }

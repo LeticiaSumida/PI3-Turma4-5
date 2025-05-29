@@ -13,6 +13,8 @@ material = "1.10.0"
 activity = "1.8.0"
 constraintlayout = "2.1.4"
 camerax = "1.4.1"
+barcodeScanning = "17.3.0"
+playServicesCodeScanner = "16.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +41,7 @@ androidx-camera-lifecycle = { group="androidx.camera", name="camera-lifecycle", 
 androidx-camera-view = { group="androidx.camera", name="camera-view", version.ref="camerax" }
 androidx-camera-video = { group="androidx.camera", name="camera-video", version.ref="camerax" }
 androidx-camera-extensions = { group="androidx.camera", name="camera-extensions", version.ref="camerax" }
+play-services-code-scanner = { module = "com.google.android.gms:play-services-code-scanner", version.ref = "playServicesCodeScanner" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

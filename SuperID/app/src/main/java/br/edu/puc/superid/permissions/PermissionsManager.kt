@@ -1,7 +1,11 @@
 package br.edu.puc.superid.permissions
 
+import android.Manifest
 import android.app.Activity
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -24,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import br.edu.puc.superid.SignInWithoutPass
 
 @Composable
 fun CameraXScreen(activity: Activity) {
@@ -89,5 +94,28 @@ fun CameraXScreen(activity: Activity) {
         ) {
             Text("Voltar")
         }
+    }
+}
+
+@Composable
+fun TelaSolicitaPermissaoCamera(
+    onPermissionGranted: () -> Unit
+) {
+    val context = LocalContext.current
+    var permissaoConcedida by remember { mutableStateOf(false) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        permissaoConcedida = granted
+        if (granted) {
+            onPermissionGranted()
+        } else {
+            Toast.makeText(context, "Permissão negada", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        launcher.launch(Manifest.permission.CAMERA)
     }
 }

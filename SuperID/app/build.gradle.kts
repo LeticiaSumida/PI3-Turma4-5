@@ -83,6 +83,7 @@ dependencies {
     //dependencia para fontes
     implementation ("androidx.compose.ui:ui-text-google-fonts:1.8.1")
 
+    //dependencia para icones
     implementation ("androidx.compose.material:material-icons-extended:1.6.1")
 
     // dependencia para camera
@@ -91,4 +92,7 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.extensions)
+
+    //dependencia leitor qrCode
+    implementation(libs.play.services.code.scanner)
 }
