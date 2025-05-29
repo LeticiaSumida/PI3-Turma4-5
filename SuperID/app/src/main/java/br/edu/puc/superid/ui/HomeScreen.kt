@@ -53,6 +53,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.delay
 
 @Composable
 fun HomePage(){
@@ -61,10 +62,23 @@ fun HomePage(){
     var verificado by remember {mutableStateOf(false)}
     var expanded2 by remember { mutableStateOf(false)}
 
+    var carregando by remember { mutableStateOf(true) }
+
     LaunchedEffect(Unit) {
-        checarVerificado { resultado, _ ->
+        checarVerificado { resultado ->
             verificado = resultado
-        }
+            carregando = false}
+        delay(2000)
+
+    }
+    LaunchedEffect(verificado, carregando) {
+        if(!carregando){
+            if(verificado){
+                Toast.makeText(context, "Email verificado", Toast.LENGTH_LONG).show()
+
+            }else{
+                Toast.makeText(context, "Verifique seu email para usar o login sem senha", Toast.LENGTH_LONG).show()
+            }}
     }
 
     Box(
@@ -227,7 +241,7 @@ fun HomePagePreview() {
     HomePage()
 }
 
-fun checarVerificado(callback: (Boolean, String) -> Unit){
+fun checarVerificado(callback: (Boolean) -> Unit){
     val db = Firebase.firestore
     val user = Firebase.auth.currentUser
     val uid = user!!.uid
@@ -235,11 +249,11 @@ fun checarVerificado(callback: (Boolean, String) -> Unit){
         .addOnSuccessListener { document ->
             if (document != null){
                 val verificado = document.getBoolean("emailVerificado") ?: false
-                callback(verificado, if (verificado) "Email verificado" else "Email não verificado")
+                callback(verificado)
             } else{
-                callback(false, "Documento não encontrado")
+                callback(false)
             }
         }
         .addOnFailureListener {  e ->
-            callback(false, "Erro ao acessar o Firestore: ${e.message}")
-}}
+            callback(false)
+        }}

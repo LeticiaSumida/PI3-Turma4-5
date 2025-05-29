@@ -450,14 +450,16 @@ class CategoriesScreenActivity : ComponentActivity() {
                         modifier = Modifier,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        fontSize = 18.sp
+                        fontSize = 18.sp,
+                        color = Color.White
                     )
                     Text(
                         textlogin,
                         modifier = Modifier,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        fontSize = 13.sp
+                        fontSize = 13.sp,
+                        color = Color.White
                     )
                 }
 
@@ -471,7 +473,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     }
 
                 ) {
-                    Icon(imageVector = Icons.Filled.VisibilityOff, contentDescription = "Ver senha")
+                    Icon(imageVector = Icons.Filled.VisibilityOff, contentDescription = "Ver senha", tint = branco)
                 }
                 IconButton(
                     modifier = Modifier,
@@ -483,7 +485,7 @@ class CategoriesScreenActivity : ComponentActivity() {
 
                 )
                 {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar senha")
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar senha", tint=branco)
                 }
                 IconButton(
                     modifier = Modifier,
@@ -502,7 +504,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     }
 
                 ) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Deletar senha")
+                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Deletar senha",tint=branco)
                 }
                 if (alterarSenha) {
                     ModalTextField(
