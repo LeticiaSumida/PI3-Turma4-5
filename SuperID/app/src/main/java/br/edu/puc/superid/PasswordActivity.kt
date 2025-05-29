@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -28,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -35,6 +38,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.ui.theme.SuperIdTheme
+import br.edu.puc.superid.ui.theme.branco
+import br.edu.puc.superid.ui.theme.cinzaclaro
+import br.edu.puc.superid.ui.theme.cinzaescuro
+import br.edu.puc.superid.ui.theme.preto
 import br.edu.puc.superid.ui.theme.roxo
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -73,17 +80,18 @@ class PasswordActivity : ComponentActivity() {
 
         Column(
             modifier = Modifier
-                .padding(vertical = 8.dp)
-                .fillMaxWidth(),
+
+
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
 
             ) {
             Text(
                 "Nova Senha:",
                 modifier = Modifier,
                 fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = roxo
+                fontWeight = FontWeight.Bold
             )
             UnderlineTextField(
                 value = login,
@@ -94,7 +102,7 @@ class PasswordActivity : ComponentActivity() {
             UnderlineTextField(
                 value = senha,
                 onValueChange = { senha = it },
-                label = "Senha"
+                label = "Senha",
 
             )
             UnderlineTextField(
@@ -115,15 +123,26 @@ class PasswordActivity : ComponentActivity() {
                     addFirestoreSenha(login, senha, desc, categoriaSelecionada)
                     Log.d(TAG, "Categoria selecionada: $categoriaSelecionada")
                 },
+                colors = ButtonDefaults.buttonColors(containerColor = roxo),
+                shape = RoundedCornerShape(16),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 10.dp, horizontal = 12.dp),
+                    .padding(vertical = 10.dp, horizontal = 12.dp)
+                    .padding(top = 50.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(16),
+                        ambientColor = cinzaclaro,
+                        spotColor = cinzaescuro
+
+                    )
 
 
 
                 ) {
                 Text(
                     "Cadastrar",
+                    color = branco
                 )
             }
 
@@ -175,6 +194,8 @@ class PasswordActivity : ComponentActivity() {
                     categoriaSelecionada,
                     modifier = Modifier.align(Alignment.CenterVertically)
                         .padding(vertical = 10.dp),
+                    color = cinzaclaro,
+                    fontSize = 17.sp
                 )
 
             }
@@ -247,7 +268,7 @@ class PasswordActivity : ComponentActivity() {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                label = { Text(label) },
+                label = { Text(label, fontWeight = FontWeight.ExtraBold) },
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
