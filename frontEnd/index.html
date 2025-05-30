@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mercado Preso</title>
     <link rel="stylesheet" href="main.css" />
     <script src="main.js" defer></script>
+    <script src="https://davidshimjs.github.io/qrcodejs/qrcode.min.js"></script>
+
 </head>
 
 <body>
@@ -110,8 +113,14 @@
     <div id="qrModal" class="modal">
             <div class="modal-content">
                 <h3>Escaneie com SuperID</h3>
-                <div id="qrcode"></div>
+                <div id="qrcode">
+                    <canvas></canvas>
+                </div>
+                <script>
+                     new QRCode(document.getElementById("qrcode"), "https://www.exemplo.com" );
+                </script>
                 <p>Aguardando autenticação...</p>
+                <div id="contador" style="font-size: 18px; margin-top: 10px;"></div>
                 <button onclick="fecharQRCode()">Cancelar</button>
             </div>
         </div>

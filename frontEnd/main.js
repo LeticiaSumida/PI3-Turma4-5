@@ -3,44 +3,73 @@ function mostrarTela(id) {
     document.getElementById(id).classList.add('ativa');
 }
 
+let qrTimeout = null;
+let contadorInterval = null;
+const tempoTotal = 60;
+
 function abrirQRCode() {
     document.getElementById('qrModal').style.display = 'flex';
 
-    // Simula a autenticação no Firebase após 5 segundos
-    setTimeout(() => {
+    if (qrTimeout) clearTimeout(qrTimeout);
+    if (contadorInterval) clearInterval(contadorInterval);
+
+    let tempoRestante = tempoTotal;
+    atualizarContador(tempoRestante);
+
+    contadorInterval = setInterval(() => {
+      tempoRestante--;
+      atualizarContador(tempoRestante);
+
+      if (tempoRestante <= 0) {
+        clearInterval(contadorInterval);
+      }
+    }, 1000);
+
+    qrTimeout = setTimeout(() => {
         fecharQRCode();
-        alert('Login realizado com sucesso via SuperID!');
-        mostrarTela('telaLojaLogado');
-    }, 5000);
+        alert('Login não realizado pois o código não foi escaneado');
+        qrTimeout = null;
+        clearInterval(contadorInterval);
+        atualizarContador(''); 
+    }, tempoTotal * 1000);
+}
+
+function atualizarContador(texto) {
+    document.getElementById('contador').textContent = typeof texto === 'number' ? `Autenticando em ${texto}s...` : texto;
 }
 
 function fecharQRCode() {
     document.getElementById('qrModal').style.display = 'none';
+
+    if (qrTimeout) {
+        clearTimeout(qrTimeout);
+        qrTimeout = null;
+    }
+    if (contadorInterval) {
+        clearInterval(contadorInterval);
+        contadorInterval = null;
+    }
+
+    atualizarContador('');
 }
 
+function cancelarQRCode() {
+    fecharQRCode();
+
+    if (qrTimeout) {
+        clearTimeout(qrTimeout);
+        qrTimeout = null;
+    }
+    if (contadorInterval) {
+        clearInterval(contadorInterval);
+        contadorInterval = null;
+    }
+
+    atualizarContador('');
+}
 
 var qrcode = new QRCode("qrcode");
 
-function makeCode () {    
-  var elText = document.getElementById("text");
-  
-  if (!elText.value) {
-    alert("Input a text");
-    elText.focus();
-    return;
-  }
-  
-  qrcode.makeCode(elText.value);
-}
 
-makeCode();
 
-$("#text").
-  on("blur", function () {
-    makeCode();
-  }).
-  on("keydown", function (e) {
-    if (e.keyCode == 13) {
-      makeCode();
-    }
-  });
+
