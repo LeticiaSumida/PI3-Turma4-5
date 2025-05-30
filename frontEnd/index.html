@@ -111,19 +111,20 @@
 
 
     <div id="qrModal" class="modal">
-            <div class="modal-content">
-                <h3>Escaneie com SuperID</h3>
-                <div id="qrcode">
-                    <canvas></canvas>
-                </div>
-                <script>
-                     new QRCode(document.getElementById("qrcode"), "https://www.exemplo.com" );
-                </script>
-                <p>Aguardando autenticação...</p>
-                <div id="contador" style="font-size: 18px; margin-top: 10px;"></div>
-                <button onclick="fecharQRCode()">Cancelar</button>
+        <div class="modal-content">
+            <h3>Escaneie com SuperID</h3>
+    
+            <div id="qrcode">
             </div>
+    
+            <p id="statusTexto">Aguardando autenticação...</p>
+    
+            <div id="contador" style="font-size: 18px; margin-top: 10px;"></div>
+    
+            <button onclick="cancelarQRCode()">Cancelar</button>
         </div>
+    </div>
+    
 
 </body>
 
