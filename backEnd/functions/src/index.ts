@@ -1,49 +1,184 @@
-import { onRequest } from 'firebase-functions/v2/https';
-import * as logger from 'firebase-functions/logger';
-import * as admin from 'firebase-admin';
+import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
+import * as QRCode from "qrcode";
+import * as crypto from "crypto";
 
 admin.initializeApp();
+const db = admin.firestore();
 
-export const generateCustomToken = onRequest(async (req, res) => {
-  const uid = req.body.uid;
+/**
+ * Gerar token aleatório seguro
+ */
+function generateToken(length: number): string {
+  return crypto.randomBytes(length).toString("hex").slice(0, length);
+}
 
-  logger.info('Request to generate token', { uid });
+/**
+ * 🔥 performAuth
+ * - Gera QRCode com loginToken
+ */
+export const performAuth = functions.https.onCall(async (data, context) => {
+  const { apiKey, siteUrl } = data;
 
-  if (!uid) {
-    res.status(400).json({ error: 'UID is required' });
-    return;
+  if (!apiKey || !siteUrl) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "apiKey e siteUrl são obrigatórios."
+    );
   }
 
-  try {
-    // Verificar se o usuário existe
-    let userRecord;
-    try {
-      userRecord = await admin.auth().getUser(uid);
-      logger.info('User exists', { uid });
-    } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
-        logger.info('User not found. Creating user...', { uid });
+  if (!/^www\.[a-z0-9\-\.]+\.[a-z]{2,}$/.test(siteUrl)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "siteUrl inválido. Deve começar com www e sem subdomínios ou barras."
+    );
+  }
 
-        // Cria o usuário se não existir
-        userRecord = await admin.auth().createUser({
-          uid: uid
-          // Você pode adicionar mais dados aqui, como email, nome, etc.
-        });
+  const partnerRef = db.collection("partners").doc(siteUrl);
+  const partnerSnap = await partnerRef.get();
 
-        logger.info('User created successfully', { uid });
-      } else {
-        throw error; // Outros erros são propagados
-      }
-    }
+  if (!partnerSnap.exists) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Parceiro não cadastrado."
+    );
+  }
 
-    // Gerar o token personalizado
-    const customToken = await admin.auth().createCustomToken(userRecord.uid);
+  const partnerData = partnerSnap.data();
+  if (partnerData?.apiKey !== apiKey) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "API Key inválida."
+    );
+  }
 
-    logger.info('Token generated successfully', { uid });
+  const loginToken = generateToken(256);
+  const now = admin.firestore.Timestamp.now();
 
-    res.status(200).json({ token: customToken });
-  } catch (error) {
-    logger.error('Error generating token', error);
-    res.status(500).json({ error: 'Error generating token' });
+  await db.collection("login").doc(loginToken).set({
+    apiKey,
+    siteUrl,
+    loginToken,
+    createdAt: now,
+    attempts: 0,
+  });
+
+  const qrCodeDataURL = await QRCode.toDataURL(loginToken);
+
+  return {
+    qrCodeBase64: qrCodeDataURL,
+    loginToken,
+  };
+});
+
+/**
+ * 🔑 confirmLogin
+ * - O app SuperID confirma o login
+ */
+export const confirmLogin = functions.https.onCall(async (data, context) => {
+  const { loginToken } = data;
+
+  const uid = context.auth?.uid;
+  if (!uid) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "Usuário não autenticado."
+    );
+  }
+
+  if (!loginToken) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "loginToken é obrigatório."
+    );
+  }
+
+  const loginRef = db.collection("login").doc(loginToken);
+  const loginSnap = await loginRef.get();
+
+  if (!loginSnap.exists) {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "Token inválido ou expirado."
+    );
+  }
+
+  const loginData = loginSnap.data();
+  const now = admin.firestore.Timestamp.now();
+  const diffSeconds = now.seconds - loginData!.createdAt.seconds;
+
+  if (diffSeconds > 60) {
+    await loginRef.delete();
+    throw new functions.https.HttpsError(
+      "deadline-exceeded",
+      "Token expirado."
+    );
+  }
+
+  await loginRef.update({
+    user: uid,
+    confirmedAt: now,
+  });
+
+  return { message: "Login confirmado com sucesso." };
+});
+
+/**
+ * 🔍 getLoginStatus
+ * - O site verifica se o login foi concluído
+ */
+export const getLoginStatus = functions.https.onCall(async (data, context) => {
+  const { loginToken } = data;
+
+  if (!loginToken) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "loginToken é obrigatório."
+    );
+  }
+
+  const loginRef = db.collection("login").doc(loginToken);
+  const loginSnap = await loginRef.get();
+
+  if (!loginSnap.exists) {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "Token inválido ou expirado."
+    );
+  }
+
+  const loginData = loginSnap.data();
+  const now = admin.firestore.Timestamp.now();
+  const diffSeconds = now.seconds - loginData!.createdAt.seconds;
+
+  if (diffSeconds > 60) {
+    await loginRef.delete();
+    throw new functions.https.HttpsError(
+      "deadline-exceeded",
+      "Token expirado."
+    );
+  }
+
+  const attempts = (loginData?.attempts || 0) + 1;
+  if (attempts >= 3) {
+    await loginRef.delete();
+    throw new functions.https.HttpsError(
+      "resource-exhausted",
+      "Número máximo de tentativas excedido."
+    );
+  }
+
+  await loginRef.update({ attempts });
+
+  if (loginData?.user) {
+    await loginRef.delete();
+    return {
+      status: "authenticated",
+      user: loginData.user,
+    };
+  } else {
+    return {
+      status: "pending",
+    };
   }
 });
