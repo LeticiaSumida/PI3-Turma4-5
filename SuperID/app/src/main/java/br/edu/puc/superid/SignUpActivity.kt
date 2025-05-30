@@ -15,14 +15,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -38,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.ui.MessageDialog
@@ -107,20 +111,17 @@ class SignUpActivity : ComponentActivity() {
 
             Text(
                 "Cadastre-se",
-                modifier = Modifier,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
 
             UnderlineTextField(
-
                 value = nome,
                 onValueChange = { nome = it },
                 label = "Nome"
             )
 
             UnderlineTextField(
-
                 value = email,
                 onValueChange = { email = it },
                 label = "Email"
@@ -129,7 +130,7 @@ class SignUpActivity : ComponentActivity() {
             UnderlineTextField(
                 value = senha,
                 onValueChange = { senha = it },
-                label = "Senha Mestre",
+                label = "Senha Mestre"
             )
 
             if (erroMensagem != null) {
@@ -161,6 +162,7 @@ class SignUpActivity : ComponentActivity() {
                             erroMensagem = "A senha precisa ter no mínimo 6 caracteres."
                             return@Button
                         }
+
                         isLoading = true
                         checarEmail(email) { emailExistente ->
                             if (emailExistente) {
@@ -190,49 +192,82 @@ class SignUpActivity : ComponentActivity() {
                         .shadow(
                             elevation = 9.dp,
                             shape = RoundedCornerShape(16),
-                            ambientColor = cinzaclaro, // Roxo mais claro para a sombra
+                            ambientColor = cinzaclaro,
                             spotColor = cinzaescuro
-
                         )
                 ) {
                     Text("Cadastrar", color = branco)
                 }
             }
-            Row() {
+
+            Row {
                 Text("Já tem uma conta? ")
                 Text(
                     "Faça Login",
                     color = roxo,
-                    modifier = Modifier.clickable(
-                        onClick = {
-                            val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
-                            startActivity(intent)
-                            finish()
-                        }
-
-                    ))
-            }
-
-            if (showSuccessDialog) {
-                MessageDialog(
-                    type = MessageType.SUCCESS,
-                    titulo = "Cadastro realizado",
-                    mensagem = "Seu cadastro foi concluído com sucesso!",
-                    textoBotao = "Ir para Login",
-                    caminhoBotao = {
-                        showSuccessDialog = false
-
+                    modifier = Modifier.clickable {
                         val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
                         startActivity(intent)
                         finish()
-                    },
-                    onDismiss = {
-                        showSuccessDialog = false
                     }
                 )
             }
         }
+
+        if (showSuccessDialog) {
+            AlertDialog(
+                onDismissRequest = { showSuccessDialog = false },
+                confirmButton = {},
+                title = null,
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Sua conta foi criada com sucesso",
+                            color = branco,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 24.dp),
+                            lineHeight = 36.sp,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(200.dp)
+                                .padding(bottom = 24.dp)
+                        )
+
+                        TextButton(
+                            onClick = {
+                                showSuccessDialog = false
+                                finish()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = branco),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = "Ir para tela de login",
+                                color = roxo,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                },
+                containerColor = roxo,
+                shape = RoundedCornerShape(20.dp),
+                tonalElevation = 8.dp
+            )
+        }
     }
+
 
     fun isValidEmail(email: String?): Boolean {
         if (email == null) return false

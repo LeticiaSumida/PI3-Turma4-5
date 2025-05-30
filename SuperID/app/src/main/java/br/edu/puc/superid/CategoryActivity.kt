@@ -72,34 +72,28 @@ class CategoryActivity : ComponentActivity() {
         val activity = context as? Activity
         var categoria by remember { mutableStateOf("") }
         var erroCategoria by remember { mutableStateOf(false) }
+        var erroCategoriaVazia by remember { mutableStateOf(false) } // novo estado para categoria vazia
         var categorias = remember { mutableStateListOf<String>() }
         var mostrarDialog by remember { mutableStateOf(false) }
         var erroInterno by remember { mutableStateOf(false) }
 
-
-
         Column(
-            modifier = Modifier
-
-
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
-
         ) {
             Text(
                 "Nova categoria:",
-                modifier = Modifier
-                    .padding(bottom = 30.dp),
+                modifier = Modifier.padding(bottom = 30.dp),
                 fontSize = 28.sp
             )
             UnderlineTextField(
                 value = categoria,
                 onValueChange = { categoria = it },
                 label = "Categoria"
-
             )
 
+            // Aviso se categoria já cadastrada
             if (erroCategoria) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -123,10 +117,41 @@ class CategoryActivity : ComponentActivity() {
                 }
             }
 
+            // Aviso se categoria vazia
+            if (erroCategoriaVazia) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Aviso",
+                        tint = Color.Red,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Não é possível cadastrar uma categoria sem nome.",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+
             Button(
                 onClick = {
                     erroCategoria = false
                     erroInterno = false
+                    erroCategoriaVazia = false
+
+                    if (categoria.trim().isEmpty()) {
+                        erroCategoriaVazia = true
+                        return@Button
+                    }
 
                     val user = Firebase.auth.currentUser
                     val uid = user?.uid
@@ -167,7 +192,7 @@ class CategoryActivity : ComponentActivity() {
                 Text("Cadastrar", color = branco)
             }
 
-
+            // ... resto do código de AlertDialog e botões permanece igual
 
             if (mostrarDialog) {
                 AlertDialog(
@@ -220,80 +245,25 @@ class CategoryActivity : ComponentActivity() {
                 )
             }
 
-
             if (erroInterno) {
-                    AlertDialog(
-                        onDismissRequest = { erroInterno = false },
-                        title = { Text("Erro interno") },
-                        text = { Text("Ocorreu um erro inesperado ao cadastrar a categoria.") },
-                        confirmButton = {
-                            Button(
-                                onClick = {
-                                    erroInterno = false
-                                    activity?.finish()
-                                }
-                            ) {
-                                Text("Voltar para Minhas senhas")
-                            }
-                        }
-                    )
-                }
-            val context = LocalContext.current
-            val activity = context as? Activity
-
-            if (mostrarDialog) {
                 AlertDialog(
-                    onDismissRequest = { mostrarDialog = false },
-                    title = null,
-                    text = {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "Categoria cadastrada com sucesso!",
-                                color = branco,
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(bottom = 24.dp),
-                                lineHeight = 36.sp
-                            )
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Sucesso",
-                                tint = Color.White,
-                                modifier = Modifier
-                                    .size(200.dp)
-                                    .padding(bottom = 16.dp)
-                            )
-                            Button(
-                                onClick = { mostrarDialog = false
-                                    activity?.finish()},
-                                colors = ButtonDefaults.buttonColors(containerColor = branco),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text(
-                                    text = "Voltar para Minhas senhas",
-                                    color = roxo,
-                                    fontWeight = FontWeight.Bold
-                                )
+                    onDismissRequest = { erroInterno = false },
+                    title = { Text("Erro interno") },
+                    text = { Text("Ocorreu um erro inesperado ao cadastrar a categoria.") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                erroInterno = false
+                                activity?.finish()
                             }
+                        ) {
+                            Text("Voltar para Minhas senhas")
                         }
-                    },
-                    containerColor = roxo,
-                    shape = RoundedCornerShape(20.dp),
-                    tonalElevation = 8.dp,
-                    confirmButton = {}
+                    }
                 )
             }
 
-
             Button(
-
-
                 onClick = {
                     val intent = Intent(context, CategoriesScreenActivity::class.java)
                     context.startActivity(intent)
@@ -306,9 +276,8 @@ class CategoryActivity : ComponentActivity() {
                     .shadow(
                         elevation = 8.dp,
                         shape = RoundedCornerShape(16),
-                        ambientColor = cinzaclaro, // Roxo mais claro para a sombra
+                        ambientColor = cinzaclaro,
                         spotColor = cinzaescuro
-
                     )
             ) {
                 Text(
@@ -318,6 +287,7 @@ class CategoryActivity : ComponentActivity() {
             }
         }
     }
+
 
 
     fun addFirestoreCategoria(categoria: String) {

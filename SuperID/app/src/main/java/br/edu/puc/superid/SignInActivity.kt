@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -38,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.edu.puc.superid.ui.HomePage
@@ -71,9 +73,10 @@ class SignInActivity : ComponentActivity() {
         var senha by remember { mutableStateOf("") }
         var erroMensagem by remember { mutableStateOf<String?>(null) }
         var isLoading by remember { mutableStateOf(false) }
-        val context = LocalContext.current
+        var showSuccessDialog by remember { mutableStateOf(false) }
         var esqueciSenhaModal by remember { mutableStateOf(false) }
 
+        val context = LocalContext.current
 
         Column(
             modifier = Modifier
@@ -81,7 +84,6 @@ class SignInActivity : ComponentActivity() {
                 .padding(top = 50.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
-
         ) {
             Image(
                 painter = painterResource(id = R.drawable.cadeado3),
@@ -89,21 +91,24 @@ class SignInActivity : ComponentActivity() {
                 modifier = Modifier
                     .size(300.dp)
                     .padding(start = 40.dp)
-
             )
             Text(
-                "Login", modifier = Modifier, fontSize = 28.sp, fontWeight = FontWeight.Bold
-
+                "Login",
+                modifier = Modifier,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
             )
 
             UnderlineTextField(
-                value = email, onValueChange = { email = it }, label = "Email"
+                value = email,
+                onValueChange = { email = it },
+                label = "Email"
             )
 
             UnderlineTextField(
                 value = senha,
                 onValueChange = { senha = it },
-                label = "Senha Mestre",
+                label = "Senha Mestre"
             )
 
             if (erroMensagem != null) {
@@ -121,7 +126,6 @@ class SignInActivity : ComponentActivity() {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
             } else {
                 Button(
-
                     onClick = {
                         erroMensagem = null
                         if (email.isBlank() || senha.isBlank()) {
@@ -142,21 +146,20 @@ class SignInActivity : ComponentActivity() {
                         loginAuth(email, senha) { login ->
                             isLoading = false
                             if (login) {
-                                setContent {
-                                    HomePage()
-                                }
+                                showSuccessDialog = true
                             } else {
                                 erroMensagem = "Email ou senha incorretos."
                             }
                         }
+
                         checarVerificacao { verificado, erro ->
                             if (erro != null) {
                                 Log.d(TAG, "Erro ao verificar email $erro")
                             } else {
                                 if (verificado) {
-                                    Log.d(TAG, "Email esta verificado")
+                                    Log.d(TAG, "Email está verificado")
                                 } else {
-                                    Log.d(TAG, "Email nao esta verificado")
+                                    Log.d(TAG, "Email não está verificado")
                                 }
                             }
                         }
@@ -169,22 +172,19 @@ class SignInActivity : ComponentActivity() {
                         .shadow(
                             elevation = 8.dp,
                             shape = RoundedCornerShape(16),
-                            ambientColor = cinzaclaro, // Roxo mais claro para a sombra
+                            ambientColor = cinzaclaro,
                             spotColor = cinzaescuro
-
                         )
                 ) {
                     Text("Logar", color = branco)
-
                 }
-                Row() {
+
+                Row {
                     Text("Esqueci minha ")
                     Text(
-                        "senha", color = roxo, modifier = Modifier.clickable(
-                            onClick = {
-                                esqueciSenhaModal = true
-                            },
-                        )
+                        "senha",
+                        color = roxo,
+                        modifier = Modifier.clickable { esqueciSenhaModal = true }
                     )
 
                     if (esqueciSenhaModal) {
@@ -195,24 +195,83 @@ class SignInActivity : ComponentActivity() {
                             caminhoBotao2 = { esqueciSenhaModal = false },
                             textoBotao1 = "Enviar link de redefinição",
                             textoBotao2 = "Cancelar",
-                            onDismiss = { esqueciSenhaModal = false })
+                            onDismiss = { esqueciSenhaModal = false }
+                        )
                     }
+                }
+
+                Row {
+                    Text("Ainda não tem conta? ")
+                    Text(
+                        "Cadastre-se",
+                        color = roxo,
+                        modifier = Modifier.clickable {
+                            val intent = Intent(context, SignUpActivity::class.java)
+                            context.startActivity(intent)
+                            (context as? ComponentActivity)?.finish()
+                        }
+                    )
                 }
             }
 
-            Row() {
-                Text("Ainda não tem conta? ")
-                Text(
-                    "Cadastre-se", color = roxo, modifier = Modifier.clickable(
-                        onClick = {
-                            val intent = Intent(context, SignUpActivity::class.java)
-                            context.startActivity(intent)
-                            finish()
-                        })
+            // Dialog de sucesso
+            if (showSuccessDialog) {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { showSuccessDialog = false },
+                    confirmButton = {},
+                    title = null,
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Login realizado com sucesso!",
+                                color = branco,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 24.dp),
+                                lineHeight = 36.sp,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .padding(bottom = 24.dp)
+                            )
+
+                            Button(
+                                onClick = {
+                                    showSuccessDialog = false
+                                    (context as? ComponentActivity)?.setContent {
+                                        HomePage()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = branco),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(
+                                    text = "Ir para a página inicial",
+                                    color = roxo,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    },
+                    containerColor = roxo,
+                    shape = RoundedCornerShape(20.dp),
+                    tonalElevation = 8.dp
                 )
             }
         }
     }
+
 
 
     fun checarVerificacao(callback: (Boolean, String?) -> Unit) {
