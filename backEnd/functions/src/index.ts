@@ -1,56 +1,49 @@
-import * as functions from "firebase-functions";
-import * as admin from "firebase-admin";
-import { v4 as uuidv4 } from "uuid";
-import * as QRCode from "qrcode";
+import { onRequest } from 'firebase-functions/v2/https';
+import * as logger from 'firebase-functions/logger';
+import * as admin from 'firebase-admin';
 
 admin.initializeApp();
-const db = admin.firestore();
 
-export const performAuth = functions.https.onRequest(async (req, res) => {
+export const generateCustomToken = onRequest(async (req, res) => {
+  const uid = req.body.uid;
+
+  logger.info('Request to generate token', { uid });
+
+  if (!uid) {
+    res.status(400).json({ error: 'UID is required' });
+    return;
+  }
+
   try {
-    const { apiKey, siteUrl } = req.body;
+    // Verificar se o usuário existe
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUser(uid);
+      logger.info('User exists', { uid });
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        logger.info('User not found. Creating user...', { uid });
 
-    if (!apiKey || !siteUrl) {
-      res.status(400).json({ error: "apiKey e siteUrl são obrigatórios" });
-      return;
+        // Cria o usuário se não existir
+        userRecord = await admin.auth().createUser({
+          uid: uid
+          // Você pode adicionar mais dados aqui, como email, nome, etc.
+        });
+
+        logger.info('User created successfully', { uid });
+      } else {
+        throw error; // Outros erros são propagados
+      }
     }
 
-    const partnerRef = db.collection("partners").doc(siteUrl);
-    const partnerSnap = await partnerRef.get();
+    // Gerar o token personalizado
+    const customToken = await admin.auth().createCustomToken(userRecord.uid);
 
-    if (!partnerSnap.exists) {
-      res.status(403).json({ error: "Site não autorizado" });
-      return;
-    }
+    logger.info('Token generated successfully', { uid });
 
-    const partnerData = partnerSnap.data();
-
-    if (partnerData?.apiKey !== apiKey) {
-      res.status(403).json({ error: "API Key inválida" });
-      return;
-    }
-
-    const loginToken =
-      uuidv4().replace(/-/g, "") + uuidv4().replace(/-/g, "") +
-      uuidv4().replace(/-/g, "") + uuidv4().replace(/-/g, "");
-
-    await db.collection("login").doc(loginToken).set({
-      apiKey,
-      siteUrl,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      loginToken,
-      status: "pending",
-    });
-
-    const qrCodeDataURL = await QRCode.toDataURL(loginToken);
-
-    res.status(200).json({
-      loginToken,
-      qrCodeImage: qrCodeDataURL,
-    });
-
+    res.status(200).json({ token: customToken });
   } catch (error) {
-    console.error("Erro no performAuth:", error);
-    res.status(500).json({ error: "Erro interno no servidor" });
+    logger.error('Error generating token', error);
+    res.status(500).json({ error: 'Error generating token' });
   }
 });
