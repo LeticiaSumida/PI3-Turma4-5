@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -71,15 +72,6 @@ fun HomePage(){
         delay(2000)
 
     }
-    LaunchedEffect(verificado, carregando) {
-        if(!carregando){
-            if(verificado){
-                Toast.makeText(context, "Email verificado", Toast.LENGTH_LONG).show()
-
-            }else{
-                Toast.makeText(context, "Verifique seu email para usar o login sem senha", Toast.LENGTH_LONG).show()
-            }}
-    }
 
     Box(
         modifier = Modifier
@@ -124,7 +116,32 @@ fun HomePage(){
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            if (!verificado) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Aviso",
+                        tint = Color(0xFF000000),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Verifique seu email para usar o login sem senha",
+                        color = Color(0xFF000000),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             Image(
                 painter = painterResource(id = R.drawable.logo),
@@ -151,7 +168,8 @@ fun HomePage(){
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
-                .width(30.dp),
+                .width(30.dp)
+                ,
             shape = RoundedCornerShape(8.dp)
         ) {
             Row(
@@ -179,9 +197,7 @@ fun HomePage(){
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        if(!verificado){ Toast.makeText(context, "Verifique seu email para usar o login sem senha", Toast.LENGTH_LONG).show()}
+            Spacer(modifier = Modifier.height(12.dp))
         Button(
             onClick = {
                 val intent = Intent(context, CategoriesScreenActivity::class.java)

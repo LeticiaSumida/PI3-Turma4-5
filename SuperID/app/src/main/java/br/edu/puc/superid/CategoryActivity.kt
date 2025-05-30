@@ -9,13 +9,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -65,10 +69,13 @@ class CategoryActivity : ComponentActivity() {
     @Composable
     fun TelaCadastroCategoria() {
         val context = LocalContext.current
+        val activity = context as? Activity
         var categoria by remember { mutableStateOf("") }
         var erroCategoria by remember { mutableStateOf(false) }
         var categorias = remember { mutableStateListOf<String>() }
         var mostrarDialog by remember { mutableStateOf(false) }
+        var erroInterno by remember { mutableStateOf(false) }
+
 
 
         Column(
@@ -93,34 +100,56 @@ class CategoryActivity : ComponentActivity() {
 
             )
 
+            if (erroCategoria) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Aviso",
+                        tint = Color.Red,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Categoria já cadastrada.",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
             Button(
-
-
                 onClick = {
-                    var categoria = categoria
-                    val user = Firebase.auth.currentUser
-                    val uid = user!!.uid
-                    checarCategoria(categoria) { categoriaexistente ->
-                        if (categoriaexistente) {
-                            Log.w(TAG, "Categoria ja cadastrada")
-                            Toast.makeText(context, "Categoria ja cadastrada", Toast.LENGTH_SHORT)
-                                .show()
-                            erroCategoria = true
-                        } else {
-                            addFirestoreCategoria(categoria)
-                            Log.d(TAG, "Categoria criada com sucesso")
-                            Toast.makeText(
-                                context,
-                                "Categoria criada com sucesso",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            categorias.add(categoria)
-                            categoria = ""
-                            mostrarDialog = true
+                    erroCategoria = false
+                    erroInterno = false
 
-                        }
+                    val user = Firebase.auth.currentUser
+                    val uid = user?.uid
+
+                    if (uid == null) {
+                        erroInterno = true
+                        return@Button
                     }
 
+                    checarCategoria(categoria) { categoriaexistente ->
+                        if (categoriaexistente) {
+                            erroCategoria = true
+                        } else {
+                            try {
+                                addFirestoreCategoria(categoria)
+                                categorias.add(categoria)
+                                categoria = ""
+                                mostrarDialog = true
+                            } catch (e: Exception) {
+                                erroInterno = true
+                            }
+                        }
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = roxo),
                 shape = RoundedCornerShape(16),
@@ -133,16 +162,82 @@ class CategoryActivity : ComponentActivity() {
                         shape = RoundedCornerShape(16),
                         ambientColor = cinzaclaro,
                         spotColor = cinzaescuro
-
                     )
             ) {
-                Text(
-                    "Cadastrar",
-                    modifier = Modifier,
+                Text("Cadastrar", color = branco)
+            }
 
-                    color = branco
+
+
+            if (mostrarDialog) {
+                AlertDialog(
+                    onDismissRequest = { mostrarDialog = false },
+                    title = null,
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Categoria cadastrada com sucesso!",
+                                color = branco,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(bottom = 24.dp),
+                                lineHeight = 36.sp
+                            )
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Sucesso",
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .padding(bottom = 16.dp)
+                            )
+                            Button(
+                                onClick = {
+                                    mostrarDialog = false
+                                    activity?.finish()
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = branco),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(
+                                    text = "Voltar para Minhas senhas",
+                                    color = roxo,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    },
+                    containerColor = roxo,
+                    shape = RoundedCornerShape(20.dp),
+                    tonalElevation = 8.dp,
+                    confirmButton = {}
                 )
             }
+
+
+            if (erroInterno) {
+                    AlertDialog(
+                        onDismissRequest = { erroInterno = false },
+                        title = { Text("Erro interno") },
+                        text = { Text("Ocorreu um erro inesperado ao cadastrar a categoria.") },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    erroInterno = false
+                                    activity?.finish()
+                                }
+                            ) {
+                                Text("Voltar para Minhas senhas")
+                            }
+                        }
+                    )
+                }
             val context = LocalContext.current
             val activity = context as? Activity
 
