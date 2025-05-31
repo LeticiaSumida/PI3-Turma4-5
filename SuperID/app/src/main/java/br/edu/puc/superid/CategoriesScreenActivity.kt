@@ -46,6 +46,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -64,6 +66,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -88,6 +91,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.edu.puc.superid.ui.HomePage
 import br.edu.puc.superid.ui.MessageType
+import br.edu.puc.superid.ui.checarVerificado
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
 import br.edu.puc.superid.ui.theme.cinzaescuro
@@ -98,6 +102,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.delay
 
 private lateinit var auth: FirebaseAuth
 
@@ -132,7 +137,16 @@ class CategoriesScreenActivity : ComponentActivity() {
         var expanded by remember { mutableStateOf(false) }
         var expanded2 by remember { mutableStateOf(false) }
         var home by remember { mutableStateOf(false) }
+        var carregando by remember {mutableStateOf(true)}
+        var verificado by remember {mutableStateOf(false)}
 
+        LaunchedEffect(Unit) {
+            checarVerificado { resultado ->
+                verificado = resultado
+                carregando = false}
+            delay(2000)
+
+        }
         SideEffect {
             systemUiController.setStatusBarColor(
                 color = Color.Black,
@@ -203,9 +217,53 @@ class CategoriesScreenActivity : ComponentActivity() {
                             finish()
                         }
                     )
+
+                    if (verificado == false) {
+                        DropdownMenuItem(
+                            text = { Text("Reenviar verificação") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Outlined.Refresh,
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                val user = Firebase.auth.currentUser
+                                user?.sendEmailVerification()
+                                Toast.makeText(
+                                    context,
+                                    "Email Reenviado com sucesso",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        )
+                    } else {
+                        DropdownMenuItem(
+
+                            text = { Text("Esqueci minha senha") },
+                            leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                            onClick = {
+                                val user = Firebase.auth.currentUser
+                                var email = user!!.email
+                                email = email.toString()
+                                Firebase.auth.sendPasswordResetEmail(email)
+                                Toast.makeText(
+                                    context,
+                                    "Email de redefinição de senha enviado com sucesso",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                        )
+
+                    }
                 }
+
                 Text("SuperID", color = branco)
             }
+
+
+
 
             if (home) {
                 HomePage()
