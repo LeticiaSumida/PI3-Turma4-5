@@ -21,6 +21,8 @@ import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -40,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -102,6 +105,58 @@ fun HomePage(){
 
                 }
             )
+            if (verificado == false) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            "Reenviar verificação",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.End
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Outlined.Refresh,
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        val user = Firebase.auth.currentUser
+                        user?.sendEmailVerification()
+                        Toast.makeText(
+                            context,
+                            "Email Reenviado com sucesso",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
+            } else {
+                DropdownMenuItem(
+
+                    text = {
+                        Text(
+                            "Esqueci minha senha",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.End
+                        )
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                    onClick = {
+                        val user = Firebase.auth.currentUser
+                        var email = user!!.email
+                        email = email.toString()
+                        Firebase.auth.sendPasswordResetEmail(email)
+                        Toast.makeText(
+                            context,
+                            "Email de redefinição de senha enviado com sucesso",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                )
+
+            }
+
         }
         Text("SuperID", color = branco)
 

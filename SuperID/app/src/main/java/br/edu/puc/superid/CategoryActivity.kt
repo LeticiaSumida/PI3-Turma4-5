@@ -7,27 +7,40 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,8 +53,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.edu.puc.superid.ui.checarVerificado
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
 import br.edu.puc.superid.ui.theme.cinzaclaro
@@ -51,6 +66,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.delay
 
 private lateinit var auth: FirebaseAuth
 private val TAG = "CategoryActivityLOG"
@@ -76,6 +92,146 @@ class CategoryActivity : ComponentActivity() {
         var categorias = remember { mutableStateListOf<String>() }
         var mostrarDialog by remember { mutableStateOf(false) }
         var erroInterno by remember { mutableStateOf(false) }
+        var verificado by remember { mutableStateOf(false) }
+        var carregando by remember { mutableStateOf(true) }
+        var expanded2 by remember { mutableStateOf(false) }
+        var home by remember { mutableStateOf(false) }
+
+
+        LaunchedEffect(Unit) {
+            checarVerificado { resultado ->
+                verificado = resultado
+                carregando = false}
+            delay(2000)
+
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(70.dp)
+                .background(roxo)
+        )
+        Row(
+            modifier = Modifier.padding(vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { finish() }) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBackIosNew,
+                    contentDescription = "Voltar",
+                    tint = branco,
+                )
+            }
+            Text("SuperID", color = branco)
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = { expanded2 = !expanded2 },
+
+                ) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = "Sign-Out",
+                    tint = branco,
+                )
+            }
+            DropdownMenu(
+                expanded = expanded2,
+                onDismissRequest = { expanded2 = false },
+                offset = DpOffset(x = (200).dp, y = 0.dp),
+
+                ) {
+                DropdownMenuItem(
+
+                    text = {
+                        Text(
+                            "Home",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.End
+                        )
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) },
+                    onClick = {
+                        home = true
+                    }
+                )
+                DropdownMenuItem(
+                    leadingIcon = {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.Logout,
+                            contentDescription = null
+                        )
+                    },
+                    text = {
+                        Text(
+                            "Logout",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.End
+                        )
+                    },
+
+                    onClick = {
+                        FirebaseAuth.getInstance().signOut()
+                        val intent = Intent(context, SignInActivity::class.java)
+                        context.startActivity(intent)
+                        finish()
+                    }
+                )
+
+                if (verificado == false) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                "Reenviar verificação",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.End
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Outlined.Refresh,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            val user = Firebase.auth.currentUser
+                            user?.sendEmailVerification()
+                            Toast.makeText(
+                                context,
+                                "Email Reenviado com sucesso",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    )
+                } else {
+                    DropdownMenuItem(
+
+                        text = {
+                            Text(
+                                "Esqueci minha senha",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.End
+                            )
+                        },
+                        leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                        onClick = {
+                            val user = Firebase.auth.currentUser
+                            var email = user!!.email
+                            email = email.toString()
+                            Firebase.auth.sendPasswordResetEmail(email)
+                            Toast.makeText(
+                                context,
+                                "Email de redefinição de senha enviado com sucesso",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+
+                    )
+
+                }
+            }
+        }
 
         Column(
             modifier = Modifier.fillMaxSize(),

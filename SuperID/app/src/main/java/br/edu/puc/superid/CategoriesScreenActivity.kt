@@ -23,6 +23,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -40,6 +42,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Delete
@@ -84,6 +87,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -182,7 +186,18 @@ class CategoriesScreenActivity : ComponentActivity() {
                 modifier = Modifier.padding(vertical = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { expanded2 = !expanded2 }
+                IconButton(onClick = {finish()}) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBackIosNew,
+                        contentDescription = "Voltar",
+                        tint = branco,
+                    )
+                }
+                Text("SuperID", color = branco)
+                Spacer(modifier = Modifier.weight(1f))
+
+                IconButton(onClick = { expanded2 = !expanded2 },
+
                 ) {
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
@@ -192,24 +207,27 @@ class CategoriesScreenActivity : ComponentActivity() {
                 }
                 DropdownMenu(
                     expanded = expanded2,
-                    onDismissRequest = { expanded2 = false }
+                    onDismissRequest = { expanded2 = false },
+                    offset = DpOffset(x = (200).dp, y = 0.dp),
+
                 ) {
                     DropdownMenuItem(
 
-                        text = { Text("Home") },
+                        text = { Text("Home", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
                         leadingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) },
                         onClick = {
                             home = true
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Logout") },
                         leadingIcon = {
                             Icon(
                                 Icons.AutoMirrored.Outlined.Logout,
                                 contentDescription = null
                             )
                         },
+                        text = { Text("Logout", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+
                         onClick = {
                             FirebaseAuth.getInstance().signOut()
                             val intent = Intent(context, SignInActivity::class.java)
@@ -220,7 +238,7 @@ class CategoriesScreenActivity : ComponentActivity() {
 
                     if (verificado == false) {
                         DropdownMenuItem(
-                            text = { Text("Reenviar verificação") },
+                            text = { Text("Reenviar verificação", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
                             leadingIcon = {
                                 Icon(
                                     Icons.Outlined.Refresh,
@@ -240,7 +258,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     } else {
                         DropdownMenuItem(
 
-                            text = { Text("Esqueci minha senha") },
+                            text = { Text("Esqueci minha senha", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
                             leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
                             onClick = {
                                 val user = Firebase.auth.currentUser
@@ -259,7 +277,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     }
                 }
 
-                Text("SuperID", color = branco)
+
             }
 
 
