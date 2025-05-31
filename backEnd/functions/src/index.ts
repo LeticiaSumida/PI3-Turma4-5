@@ -1,10 +1,13 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import * as QRCode from "qrcode";
+import QRCode from "qrcode";
 import * as crypto from "crypto";
 
 admin.initializeApp();
 const db = admin.firestore();
+
+const TOKEN_EXPIRATION = 180; // segundos
+const MAX_ATTEMPTS = 3;
 
 /**
  * Gerar token aleatório seguro
@@ -14,10 +17,9 @@ function generateToken(length: number): string {
 }
 
 /**
- * 🔥 performAuth
- * - Gera QRCode com loginToken
+ *  performAuth
  */
-export const performAuth = functions.https.onCall(async (data, context) => {
+export const performAuth = functions.https.onCall(async (data) => {
   const { apiKey, siteUrl } = data;
 
   if (!apiKey || !siteUrl) {
@@ -27,10 +29,10 @@ export const performAuth = functions.https.onCall(async (data, context) => {
     );
   }
 
-  if (!/^www\.[a-z0-9\-\.]+\.[a-z]{2,}$/.test(siteUrl)) {
+  if (!/^[a-z0-9\-\.]+\.[a-z]{2,}$/.test(siteUrl)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "siteUrl inválido. Deve começar com www e sem subdomínios ou barras."
+      "siteUrl inválido. Deve ser um domínio válido."
     );
   }
 
@@ -72,13 +74,12 @@ export const performAuth = functions.https.onCall(async (data, context) => {
 });
 
 /**
- * 🔑 confirmLogin
- * - O app SuperID confirma o login
+ *  confirmLogin
  */
 export const confirmLogin = functions.https.onCall(async (data, context) => {
   const { loginToken } = data;
-
   const uid = context.auth?.uid;
+
   if (!uid) {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -107,7 +108,7 @@ export const confirmLogin = functions.https.onCall(async (data, context) => {
   const now = admin.firestore.Timestamp.now();
   const diffSeconds = now.seconds - loginData!.createdAt.seconds;
 
-  if (diffSeconds > 60) {
+  if (diffSeconds > TOKEN_EXPIRATION) {
     await loginRef.delete();
     throw new functions.https.HttpsError(
       "deadline-exceeded",
@@ -124,10 +125,9 @@ export const confirmLogin = functions.https.onCall(async (data, context) => {
 });
 
 /**
- * 🔍 getLoginStatus
- * - O site verifica se o login foi concluído
+ *  getLoginStatus
  */
-export const getLoginStatus = functions.https.onCall(async (data, context) => {
+export const getLoginStatus = functions.https.onCall(async (data) => {
   const { loginToken } = data;
 
   if (!loginToken) {
@@ -151,7 +151,7 @@ export const getLoginStatus = functions.https.onCall(async (data, context) => {
   const now = admin.firestore.Timestamp.now();
   const diffSeconds = now.seconds - loginData!.createdAt.seconds;
 
-  if (diffSeconds > 60) {
+  if (diffSeconds > TOKEN_EXPIRATION) {
     await loginRef.delete();
     throw new functions.https.HttpsError(
       "deadline-exceeded",
@@ -160,7 +160,8 @@ export const getLoginStatus = functions.https.onCall(async (data, context) => {
   }
 
   const attempts = (loginData?.attempts || 0) + 1;
-  if (attempts >= 3) {
+
+  if (attempts >= MAX_ATTEMPTS) {
     await loginRef.delete();
     throw new functions.https.HttpsError(
       "resource-exhausted",

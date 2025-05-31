@@ -32,14 +32,19 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getLoginStatus = exports.confirmLogin = exports.performAuth = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
-const QRCode = __importStar(require("qrcode"));
+const qrcode_1 = __importDefault(require("qrcode"));
 const crypto = __importStar(require("crypto"));
 admin.initializeApp();
 const db = admin.firestore();
+const TOKEN_EXPIRATION = 180; // segundos
+const MAX_ATTEMPTS = 3;
 /**
  * Gerar token aleatório seguro
  */
@@ -47,16 +52,15 @@ function generateToken(length) {
     return crypto.randomBytes(length).toString("hex").slice(0, length);
 }
 /**
- * 🔥 performAuth
- * - Gera QRCode com loginToken
+ *  performAuth
  */
-exports.performAuth = functions.https.onCall(async (data, context) => {
+exports.performAuth = functions.https.onCall(async (data) => {
     const { apiKey, siteUrl } = data;
     if (!apiKey || !siteUrl) {
         throw new functions.https.HttpsError("invalid-argument", "apiKey e siteUrl são obrigatórios.");
     }
-    if (!/^www\.[a-z0-9\-\.]+\.[a-z]{2,}$/.test(siteUrl)) {
-        throw new functions.https.HttpsError("invalid-argument", "siteUrl inválido. Deve começar com www e sem subdomínios ou barras.");
+    if (!/^[a-z0-9\-\.]+\.[a-z]{2,}$/.test(siteUrl)) {
+        throw new functions.https.HttpsError("invalid-argument", "siteUrl inválido. Deve ser um domínio válido.");
     }
     const partnerRef = db.collection("partners").doc(siteUrl);
     const partnerSnap = await partnerRef.get();
@@ -76,15 +80,14 @@ exports.performAuth = functions.https.onCall(async (data, context) => {
         createdAt: now,
         attempts: 0,
     });
-    const qrCodeDataURL = await QRCode.toDataURL(loginToken);
+    const qrCodeDataURL = await qrcode_1.default.toDataURL(loginToken);
     return {
         qrCodeBase64: qrCodeDataURL,
         loginToken,
     };
 });
 /**
- * 🔑 confirmLogin
- * - O app SuperID confirma o login
+ *  confirmLogin
  */
 exports.confirmLogin = functions.https.onCall(async (data, context) => {
     var _a;
@@ -104,7 +107,7 @@ exports.confirmLogin = functions.https.onCall(async (data, context) => {
     const loginData = loginSnap.data();
     const now = admin.firestore.Timestamp.now();
     const diffSeconds = now.seconds - loginData.createdAt.seconds;
-    if (diffSeconds > 60) {
+    if (diffSeconds > TOKEN_EXPIRATION) {
         await loginRef.delete();
         throw new functions.https.HttpsError("deadline-exceeded", "Token expirado.");
     }
@@ -115,10 +118,9 @@ exports.confirmLogin = functions.https.onCall(async (data, context) => {
     return { message: "Login confirmado com sucesso." };
 });
 /**
- * 🔍 getLoginStatus
- * - O site verifica se o login foi concluído
+ *  getLoginStatus
  */
-exports.getLoginStatus = functions.https.onCall(async (data, context) => {
+exports.getLoginStatus = functions.https.onCall(async (data) => {
     const { loginToken } = data;
     if (!loginToken) {
         throw new functions.https.HttpsError("invalid-argument", "loginToken é obrigatório.");
@@ -131,12 +133,12 @@ exports.getLoginStatus = functions.https.onCall(async (data, context) => {
     const loginData = loginSnap.data();
     const now = admin.firestore.Timestamp.now();
     const diffSeconds = now.seconds - loginData.createdAt.seconds;
-    if (diffSeconds > 60) {
+    if (diffSeconds > TOKEN_EXPIRATION) {
         await loginRef.delete();
         throw new functions.https.HttpsError("deadline-exceeded", "Token expirado.");
     }
     const attempts = ((loginData === null || loginData === void 0 ? void 0 : loginData.attempts) || 0) + 1;
-    if (attempts >= 3) {
+    if (attempts >= MAX_ATTEMPTS) {
         await loginRef.delete();
         throw new functions.https.HttpsError("resource-exhausted", "Número máximo de tentativas excedido.");
     }
