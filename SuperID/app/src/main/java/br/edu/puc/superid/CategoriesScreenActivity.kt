@@ -600,7 +600,7 @@ class CategoriesScreenActivity : ComponentActivity() {
         }
     }
 
-    //---------- parei por aqui
+    //Composable responsável por exibir senhas.
     @Composable
     fun mostrarSenhas(
         conta: ContaSenha,
@@ -636,14 +636,17 @@ class CategoriesScreenActivity : ComponentActivity() {
                     )
                 }
 
+                // Botão: alternar visibilidade da senha
                 IconButton(onClick = { checked = !checked }) {
                     Icon(Icons.Filled.VisibilityOff, contentDescription = "Ver senha", tint = branco)
                 }
 
+                // Botão: abrir modal para alterar a senha
                 IconButton(onClick = { alterarSenha = true }) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar senha", tint = branco)
                 }
 
+                // Botão: remover a senha gi
                 IconButton(onClick = { mostrarConfirmacaoExclusao = true }) {
                     Icon(Icons.Default.Delete, contentDescription = "Deletar senha", tint = branco)
                 }
@@ -861,7 +864,7 @@ class CategoriesScreenActivity : ComponentActivity() {
     }
 
 
-
+    // Função que busca as senhas de uma categoria específica no Firestore
     fun senhasConta(senhas: SnapshotStateList<ContaSenha>, categoria: String) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
@@ -885,7 +888,7 @@ class CategoriesScreenActivity : ComponentActivity() {
             }
     }
 
-
+    // Função que busca todas as categorias do usuário
     fun CategoriasConta(categorias: SnapshotStateList<String>) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
@@ -907,7 +910,7 @@ class CategoriesScreenActivity : ComponentActivity() {
             }
     }
 
-
+    // Função que remove uma senha específica do Firestore
     fun removerFirestoreSenha(
 
         senha: String,
@@ -946,6 +949,7 @@ class CategoriesScreenActivity : ComponentActivity() {
             }
     }
 
+    // Função que remove uma categoria do Firestore
     fun removerCategoriaFirestore(
         categoria: String,
         onSucesso: () -> Unit,
@@ -978,7 +982,7 @@ class CategoriesScreenActivity : ComponentActivity() {
 
 
 
-
+    // Função que edita a senha no Firestore
     fun editarFirestoreSenha(
         login: String,
         senhaAntiga: String,
@@ -1014,7 +1018,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                 onFailure(e)
             }
     }
-
+    // Composable para exibir um modal com campo de texto para inserir ou alterar uma senha.
     @Composable
     fun ModalTextField(
         type: MessageType,
