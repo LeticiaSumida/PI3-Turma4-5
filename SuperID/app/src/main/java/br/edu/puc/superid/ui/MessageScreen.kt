@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +50,8 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import androidx.compose.material3.IconButton
+
 
 private val TAG = "MODALSCREEN"
 
@@ -192,15 +197,26 @@ fun ModalTextField(
                 )
                 when (type) {
                     MessageType.PASSWORD -> {
+                        var senhaVisivel by remember { mutableStateOf(false) }
+
                         TextField(
                             modifier = Modifier
                                 .padding(vertical = 10.dp, horizontal = 12.dp)
                                 .fillMaxWidth(),
                             value = password,
                             onValueChange = setPassword,
-                            label = { Text("Senha Mestre") },
-                            visualTransformation = PasswordVisualTransformation()
+                            label = { Text("Senha Mestre",color = Color.Black) },
+                            visualTransformation = if (senhaVisivel) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { senhaVisivel = !senhaVisivel }) {
+                                    Icon(
+                                        imageVector = if (senhaVisivel) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = if (senhaVisivel) "Ocultar senha" else "Mostrar senha"
+                                    )
+                                }
+                            }
                         )
+
                         mensagemErro.value?.let { mensagem ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -279,7 +295,7 @@ fun ModalTextField(
                                 .fillMaxWidth(),
                             value = email2,
                             onValueChange = setEmail,
-                            label = { Text("Email") }
+                            label = { Text("Email", color = Color.Black) }
                         )
 
                         mensagemErro.value?.let { mensagem ->

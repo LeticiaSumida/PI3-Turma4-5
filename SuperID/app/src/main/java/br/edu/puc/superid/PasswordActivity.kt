@@ -23,6 +23,8 @@ import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Lock
@@ -53,6 +55,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
@@ -505,56 +508,53 @@ fun carregarCategorias(categorias: SnapshotStateList<String>) {
         }
 }
 
+@Composable
+fun UnderlineTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+) {
+    var senhaVisivel by remember { mutableStateOf(false) }
 
-    @Composable
-    fun UnderlineTextField(
-        value: String,
-        onValueChange: (String) -> Unit,
-        label: String,
-    ) {
-        if (label == "Senha") {
-            TextField(
-                value = value,
-                onValueChange = onValueChange,
-                label = { Text(label, fontWeight = FontWeight.ExtraBold) },
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.LightGray,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Gray,
-                    unfocusedIndicatorColor = Color.Gray,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp, horizontal = 30.dp),
-                visualTransformation = PasswordVisualTransformation()
+    val visualTransformation =
+        if (label == "Senha" && !senhaVisivel) PasswordVisualTransformation() else VisualTransformation.None
+
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = {
+            Text(
+                label,
+                fontWeight = if (label == "Senha") FontWeight.ExtraBold else FontWeight.Normal
             )
-        } else {
-            TextField(
-                value = value,
-                onValueChange = onValueChange,
-                label = { Text(label) },
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.LightGray,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Gray,
-                    unfocusedIndicatorColor = Color.Gray,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp, horizontal = 30.dp)
-            )
-        }
-    }
+        },
+        trailingIcon = {
+            if (label == "Senha") {
+                val image = if (senhaVisivel) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                val description = if (senhaVisivel) "Ocultar senha" else "Mostrar senha"
+                IconButton(onClick = { senhaVisivel = !senhaVisivel }) {
+                    Icon(imageVector = image, contentDescription = description)
+                }
+            }
+        },
+        visualTransformation = visualTransformation,
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+            disabledTextColor = Color.LightGray,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            focusedIndicatorColor = Color.Gray,
+            unfocusedIndicatorColor = Color.Gray,
+            disabledIndicatorColor = Color.Transparent
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp, horizontal = 30.dp)
+    )
+}
+
 
 
             // Função para gerar token aleatório

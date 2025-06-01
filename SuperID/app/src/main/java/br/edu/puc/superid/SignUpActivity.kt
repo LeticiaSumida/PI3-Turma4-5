@@ -1,6 +1,7 @@
 package br.edu.puc.superid
 
 import android.content.Intent
+import androidx.compose.ui.text.TextStyle
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -82,6 +83,7 @@ class SignUpActivity : ComponentActivity() {
                             telaAtual = "home"
                         }
                     )
+
                     "home" -> TelaCadastro()
                 }
             }
@@ -135,22 +137,25 @@ class SignUpActivity : ComponentActivity() {
             )
 
             if (erroMensagem != null) {
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = 30.dp, top = 4.dp)){
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = "Aviso",
-                    tint = Color.Red,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = erroMensagem!!,
-                    color = Color.Red,
-                    fontSize = 14.sp,
-                    modifier = Modifier
-                        .padding(8.dp)
-                )
-            }}
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 30.dp, top = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Aviso",
+                        tint = Color.Red,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = erroMensagem!!,
+                        color = Color.Red,
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .padding(8.dp)
+                    )
+                }
+            }
 
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
@@ -378,22 +383,39 @@ class SignUpActivity : ComponentActivity() {
     ) {
         var senhaVisibilidade by remember { mutableStateOf(false) }
 
+        val textFieldColors = TextFieldDefaults.colors(
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black,
+            disabledTextColor = Color.LightGray,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            focusedIndicatorColor = Color.Gray,
+            unfocusedIndicatorColor = Color.Gray,
+            disabledIndicatorColor = Color.Transparent
+        )
+
+        val textStyle = TextStyle(
+            color = Color.Black,
+            fontWeight = FontWeight.Bold
+        )
+
+        val labelComposable = @Composable {
+            Text(
+                label,
+                color = Color.Black,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+
         if (label == "Senha Mestre") {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                label = { Text(label) },
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.LightGray,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Gray,
-                    unfocusedIndicatorColor = Color.Gray,
-                    disabledIndicatorColor = Color.Transparent
-                ),
+                label = labelComposable,
+                colors = textFieldColors,
+                textStyle = textStyle,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp, horizontal = 30.dp),
@@ -413,18 +435,9 @@ class SignUpActivity : ComponentActivity() {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                label = { Text(label) },
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.LightGray,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Gray,
-                    unfocusedIndicatorColor = Color.Gray,
-                    disabledIndicatorColor = Color.Transparent
-                ),
+                label = labelComposable,
+                colors = textFieldColors,
+                textStyle = textStyle,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp, horizontal = 30.dp)

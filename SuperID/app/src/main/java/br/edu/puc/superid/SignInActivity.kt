@@ -1,6 +1,7 @@
 package br.edu.puc.superid
 
 import android.content.Intent
+import androidx.compose.ui.text.TextStyle
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -103,7 +104,7 @@ class SignInActivity : ComponentActivity() {
             UnderlineTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = "Email"
+                label = "Email",
             )
 
             UnderlineTextField(
@@ -113,8 +114,10 @@ class SignInActivity : ComponentActivity() {
             )
 
             if (erroMensagem != null) {
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = 30.dp, top = 4.dp)){
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 30.dp, top = 4.dp)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Warning,
                         contentDescription = "Aviso",
@@ -282,7 +285,6 @@ class SignInActivity : ComponentActivity() {
     }
 
 
-
     fun checarVerificacao(callback: (Boolean, String?) -> Unit) {
         val user = FirebaseAuth.getInstance().currentUser
         val db = Firebase.firestore
@@ -340,19 +342,26 @@ class SignInActivity : ComponentActivity() {
 
     @Composable
     fun UnderlineTextField(
-        value: String, onValueChange: (String) -> Unit, label: String
+        value: String,
+        onValueChange: (String) -> Unit,
+        label: String
     ) {
         var senhaVisibilidade by remember { mutableStateOf(false) }
+
+        val textStyle = TextStyle(color = Color.DarkGray) // Define a cor da fonte aqui
 
         if (label == "Senha Mestre") {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                label = { Text(label) },
+                label = {
+                    Text(label, color = Color.DarkGray, fontWeight = FontWeight.SemiBold)
+                },
+                textStyle = textStyle,
                 colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.LightGray,
+                    focusedTextColor = Color.DarkGray,
+                    unfocusedTextColor = Color.DarkGray,
+                    disabledTextColor = Color.Gray,
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     disabledContainerColor = Color.Transparent,
@@ -365,22 +374,25 @@ class SignInActivity : ComponentActivity() {
                     .padding(vertical = 10.dp, horizontal = 30.dp),
                 visualTransformation = if (senhaVisibilidade) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val image = if (senhaVisibilidade) Icons.Default.Visibility
-                    else Icons.Default.VisibilityOff
-
+                    val image =
+                        if (senhaVisibilidade) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = { senhaVisibilidade = !senhaVisibilidade }) {
-                        Icon(imageVector = image, contentDescription = null)
+                        Icon(imageVector = image, contentDescription = null, tint = Color.DarkGray)
                     }
-                })
+                }
+            )
         } else {
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                label = { Text(label) },
+                label = {
+                    Text(label, color = Color.DarkGray, fontWeight = FontWeight.SemiBold)
+                },
+                textStyle = textStyle,
                 colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.LightGray,
+                    focusedTextColor = Color.DarkGray,
+                    unfocusedTextColor = Color.DarkGray,
+                    disabledTextColor = Color.Gray,
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     disabledContainerColor = Color.Transparent,

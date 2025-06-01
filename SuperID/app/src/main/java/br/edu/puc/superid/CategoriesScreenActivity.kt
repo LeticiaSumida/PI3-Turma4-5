@@ -49,6 +49,8 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Lock
@@ -638,7 +640,11 @@ class CategoriesScreenActivity : ComponentActivity() {
 
                 // Botão: alternar visibilidade da senha
                 IconButton(onClick = { checked = !checked }) {
-                    Icon(Icons.Filled.VisibilityOff, contentDescription = "Ver senha", tint = branco)
+                    Icon(
+                        imageVector = if (checked) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = if (checked) "Ocultar senha" else "Mostrar senha",
+                        tint = branco
+                    )
                 }
 
                 // Botão: abrir modal para alterar a senha
