@@ -13,6 +13,7 @@ object CriptoAES {
         return SecretKeySpec(SECRET_KEY.toByteArray(Charsets.UTF_8), ALGORITHM)
     }
 
+    //função para criptografar texto
     fun criptografar(texto: String): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, getKey())
@@ -20,6 +21,7 @@ object CriptoAES {
         return Base64.encodeToString(bytesCriptografados, Base64.DEFAULT).trim()
     }
 
+    // Função para descriptografar texto
     fun descriptografar(textoCriptografado: String): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.DECRYPT_MODE, getKey())

@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
+    // Função composable que define a tela principal da aplicação
     @Composable
     fun TelaPrincipal() {
         Column(
