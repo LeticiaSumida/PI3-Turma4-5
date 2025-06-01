@@ -46,6 +46,7 @@ import com.google.firebase.firestore.firestore
 
 private val TAG = "MODALSCREEN"
 
+//Definie os tipos de mensagem que podem ser exibidos no modal
 enum class MessageType {
     SUCCESS,
     ERROR,
@@ -53,6 +54,7 @@ enum class MessageType {
     PASSWORD
 }
 
+// Composable de modal de aviso de acordo com tipo
 @Composable
 fun MessageDialog(
     type: MessageType,
@@ -140,7 +142,7 @@ fun PreviewMessageDialogSuccess() {
         textoBotao = "Ir para o login",
     )
 }
-
+// Composable para exibir Modal com TextField
 @Composable
 fun ModalTextField(
     type: MessageType,
@@ -207,6 +209,7 @@ fun ModalTextField(
                             )
                         }
 
+                        // Botão para reautenticar com senha mestre
                         Button(
                             onClick = {
                                 val user = FirebaseAuth.getInstance().currentUser
@@ -278,6 +281,7 @@ fun ModalTextField(
                             )
                         }
 
+                        // Botão para enviar email de redefinição de senha
                         Button(
                             onClick = {
                                 if (email2.isNotBlank()) {
@@ -377,7 +381,7 @@ fun ModalTextField(
         dismissButton = {}
     )
 }
-
+// Função que consulta no Firestore se o email existe e envia um email de redefinição
 fun esqueciSenha(
     email: String,
     callback: (Boolean, String) -> Unit
@@ -412,7 +416,7 @@ fun esqueciSenha(
                     )
 
                 }
-            } else {
+            } else {git
                 Log.w(TAG, "Email nao esta no banco") // Result = null
                 callback(false, "Email não encontrado no sistema.")
 
@@ -428,7 +432,7 @@ fun esqueciSenha(
         }
 
 }
-
+// Função para validar se o formato do email é válido
 fun isValidEmail(email: String?): Boolean {
     if (email == null) return false
 
