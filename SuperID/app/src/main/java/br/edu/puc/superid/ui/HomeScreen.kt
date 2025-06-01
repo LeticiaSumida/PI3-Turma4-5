@@ -59,6 +59,8 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 
+//Composable que representa a tela inicial do aplicativo.
+//Exibe opções de login sem senha, gerenciamento de senhas e acesso a configurações da conta.
 @Composable
 fun HomePage(){
     var context = LocalContext.current
@@ -68,6 +70,7 @@ fun HomePage(){
 
     var carregando by remember { mutableStateOf(true) }
 
+    // LaunchedEffect usado para verificar o status de verificação do e-mail do usuário.
     LaunchedEffect(Unit) {
         checarVerificado { resultado ->
             verificado = resultado
@@ -76,6 +79,7 @@ fun HomePage(){
 
     }
 
+    // Layout da barra superior com ícones e título.
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -92,10 +96,14 @@ fun HomePage(){
                 tint = branco,
             )
         }
+
+        // Menu suspenso que aparece ao clicar no ícone da conta.
         DropdownMenu(
             expanded = expanded2,
             onDismissRequest = { expanded2 = false }
         ) {
+
+            // Item do menu: Logout.
             DropdownMenuItem(
                 text = { Text("Logout") },
                 leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
@@ -105,6 +113,8 @@ fun HomePage(){
 
                 }
             )
+
+            // Item do menu : Reenviar verificação
             if (verificado == false) {
                 DropdownMenuItem(
                     text = {
@@ -131,6 +141,8 @@ fun HomePage(){
                     }
                 )
             } else {
+
+                // Item do menu: Esqueci minha senha
                 DropdownMenuItem(
 
                     text = {
@@ -158,11 +170,13 @@ fun HomePage(){
             }
 
         }
+
+        // Título "SuperID" na barra superior.
         Text("SuperID", color = branco)
 
     }
 
-
+        //Conteúdo Principal da Página
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -172,6 +186,8 @@ fun HomePage(){
             verticalArrangement = Arrangement.Top
         ) {
             Spacer(modifier = Modifier.height(12.dp))
+
+            // Exibe um aviso se o e-mail do usuário não estiver verificado.
             if (!verificado) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -198,6 +214,7 @@ fun HomePage(){
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            // Imagem do logotipo.
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = null,
@@ -215,6 +232,7 @@ fun HomePage(){
 
         Spacer(modifier = Modifier.height(48.dp))
 
+        //Botão "Login sem senha"
         Button(
             enabled = verificado,
             onClick = {
@@ -253,6 +271,8 @@ fun HomePage(){
             }
         }
             Spacer(modifier = Modifier.height(12.dp))
+
+        // Botão "Minhas Senhas"
         Button(
             onClick = {
                 val intent = Intent(context, CategoriesScreenActivity::class.java)
@@ -291,6 +311,7 @@ fun HomePage(){
         }
     }
 
+    // Modal de Senha Mestre
     if (mostrarDialogoSenha) {
         ModalTextField(
             type = MessageType.PASSWORD,
@@ -312,6 +333,7 @@ fun HomePagePreview() {
     HomePage()
 }
 
+//Função assíncrona para verificar se o e-mail do usuário atual está verificado no Firestore.
 fun checarVerificado(callback: (Boolean) -> Unit){
     val db = Firebase.firestore
     val user = Firebase.auth.currentUser

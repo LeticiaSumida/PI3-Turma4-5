@@ -2,16 +2,31 @@ package br.edu.puc.superid
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import br.edu.puc.superid.permissions.TelaSolicitaPermissaoCamera
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
+import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import java.lang.reflect.Modifier
+
 
 class SignInWithoutPass : ComponentActivity() {
 
@@ -27,7 +42,11 @@ class SignInWithoutPass : ComponentActivity() {
     }
 
     private fun startBarcodeScanner() {
-        val options = GmsBarcodeScannerOptions.Builder().build()
+        val options = GmsBarcodeScannerOptions.Builder()
+            .setBarcodeFormats(
+                Barcode.FORMAT_QR_CODE
+            )
+            .build()
         val scanner = GmsBarcodeScanning.getClient(this, options)
 
         scanner.startScan()
@@ -35,6 +54,7 @@ class SignInWithoutPass : ComponentActivity() {
                 val loginToken = barcode.rawValue
                 if (!loginToken.isNullOrEmpty()) {
                     updateLoginDocument(loginToken)
+                    showSuccessPopup(loginToken)
                 } else {
                     showFailurePopup("QR Code inválido: Token vazio")
                 }
@@ -78,28 +98,50 @@ class SignInWithoutPass : ComponentActivity() {
     }
 
     private fun showSuccessPopup(message: String) {
-//        setContent {
-//            SuperIdTheme {
-//                PopUpScreen(message, Icons.Default.CheckCircle, MaterialTheme.colorScheme.primary) {
-//                    setResult(RESULT_OK)
+        setContent {
+            SuperIdTheme {
+                PopUpScreen(message, Icons.Default.CheckCircle) {
+                    setResult(RESULT_OK)
                     finish()
-//                }
-//            }
-//        }
+                }
+            }
+        }
     }
 
     private fun showFailurePopup(message: String) {
-//        setContent {
-//            SuperIdTheme {
-//                AutoDismissPopup(
-//                    message = message,
-//                    icon = Icons.Default.Cancel,
-//                    iconColor = MaterialTheme.colorScheme.error
-//                ) {
-//                    setResult(RESULT_CANCELED)
+        setContent {
+            SuperIdTheme {
+                PopUpScreen(
+                    message = message,
+                    icon = Icons.Default.Cancel,
+                ) {
+                    setResult(RESULT_CANCELED)
                     finish()
-//                }
-//            }
-//        }
+                }
+            }
+        }
     }
+}
+
+@Composable
+fun PopUpScreen(
+    message: String,
+    icon: ImageVector,onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Icon(
+                icon,
+                contentDescription = null,
+            )
+        },
+        text = {
+            Text(message)
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("OK")
+            }
+        }
+    )
 }
