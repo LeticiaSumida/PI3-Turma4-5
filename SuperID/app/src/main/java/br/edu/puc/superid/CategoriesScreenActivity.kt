@@ -19,6 +19,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,6 +46,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -64,9 +66,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -93,11 +98,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import br.edu.puc.superid.CriptoAES.criptografar
+import br.edu.puc.superid.CriptoAES.descriptografar
 import br.edu.puc.superid.ui.HomePage
 import br.edu.puc.superid.ui.MessageType
 import br.edu.puc.superid.ui.checarVerificado
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
+import br.edu.puc.superid.ui.theme.cinzaclaro
 import br.edu.puc.superid.ui.theme.cinzaescuro
 import br.edu.puc.superid.ui.theme.preto
 import br.edu.puc.superid.ui.theme.roxo
@@ -578,28 +586,23 @@ class CategoriesScreenActivity : ComponentActivity() {
     fun mostrarSenhas(
         conta: ContaSenha,
         senhas: SnapshotStateList<ContaSenha>
-
-
     ) {
-
         var textlogin = conta.login
         var text = conta.senha
         var textMasked = "*".repeat(text.length)
         var checked by remember { mutableStateOf(false) }
         var alterarSenha by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .padding(3.dp)
-        ) {
+        var mostrarDialogSucesso by remember { mutableStateOf(false) }
+        var mostrarConfirmacaoExclusao by remember { mutableStateOf(false) }
+
+        Column(modifier = Modifier.padding(3.dp)) {
             Row(
-                modifier = Modifier
-                    .padding(horizontal = 30.dp),
+                modifier = Modifier.padding(horizontal = 30.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(5f)) {
                     Text(
                         if (checked) text else textMasked,
-                        modifier = Modifier,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 18.sp,
@@ -607,7 +610,6 @@ class CategoriesScreenActivity : ComponentActivity() {
                     )
                     Text(
                         textlogin,
-                        modifier = Modifier,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 13.sp,
@@ -615,76 +617,230 @@ class CategoriesScreenActivity : ComponentActivity() {
                     )
                 }
 
-
-                IconButton(
-                    modifier = Modifier,
-
-
-                    onClick = {
-                        checked = !checked
-                    }
-
-                ) {
-                    Icon(imageVector = Icons.Filled.VisibilityOff, contentDescription = "Ver senha", tint = branco)
+                IconButton(onClick = { checked = !checked }) {
+                    Icon(Icons.Filled.VisibilityOff, contentDescription = "Ver senha", tint = branco)
                 }
-                IconButton(
-                    modifier = Modifier,
 
-
-                    onClick = {
-                        alterarSenha = true
-                    }
-
-                )
-                {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar senha", tint=branco)
+                IconButton(onClick = { alterarSenha = true }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar senha", tint = branco)
                 }
-                IconButton(
-                    modifier = Modifier,
 
-                    onClick = {
-                        removerFirestoreSenha(
-                            conta.senha, conta.login,
-                            onSuccess = {
-                                senhas.remove(conta)
-                                Log.d("UI", "Senha deletada com sucesso")
-
-                            },
-                            onFailure = { e ->
-                                Log.e("UI", "Erro ao deletar senha: ${e.message}")
-                            })
-                    }
-
-                ) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = "Deletar senha",tint=branco)
-                }
-                if (alterarSenha) {
-                    ModalTextField(
-                        type = MessageType.PASSWORD,
-                        titulo = "Quer alterar esta senha?",
-                        mensagem = conta.login,
-                        textoBotao1 = "Alterar",
-                        textoBotao2 = "Cancelar",
-                        onConfirm = { novaSenha ->
-                            editarFirestoreSenha(
-                                conta.login, conta.senha, novaSenha,
-                                onSuccess = {
-                                    conta.senha = novaSenha
-                                    alterarSenha = false
-                                },
-                                onFailure = {
-                                    Log.e("Erro", "Falha ao editar senha")
-                                    alterarSenha = false
-                                }
-                            )
-                        },
-                        onDismiss = { alterarSenha = false }
-                    )
+                IconButton(onClick = { mostrarConfirmacaoExclusao = true }) {
+                    Icon(Icons.Default.Delete, contentDescription = "Deletar senha", tint = branco)
                 }
             }
 
+            if (alterarSenha) {
+                var novaSenha by remember { mutableStateOf("") }
+
+                AlertDialog(
+                    onDismissRequest = { alterarSenha = false },
+                    confirmButton = {},
+                    dismissButton = {},
+                    shape = RoundedCornerShape(24.dp),
+                    containerColor = Color(0xFFEDE4F3),
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Digite sua nova\nSenha Mestre",
+                                style = MaterialTheme.typography.titleLarge.copy(fontSize = 24.sp),
+                                color = Color.Black,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            TextField(
+                                value = novaSenha,
+                                onValueChange = { novaSenha = it },
+                                label = { Text("Nova Senha", color = Color.Gray) },
+                                singleLine = true,
+                                colors = TextFieldDefaults.colors(
+                                    focusedIndicatorColor = Color(0xFF7B4EFF),
+                                    unfocusedIndicatorColor = Color.Gray,
+                                    focusedContainerColor = Color(0xFFF5EDF9),
+                                    unfocusedContainerColor = Color(0xFFF5EDF9),
+                                    focusedTextColor = Color.Black,
+                                    unfocusedTextColor = Color.Black,
+                                    cursorColor = Color(0xFF7B4EFF)
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Button(
+                                onClick = {
+                                    editarFirestoreSenha(
+                                        conta.login, conta.senha, novaSenha,
+                                        onSuccess = {
+                                            conta.senha = novaSenha
+                                            alterarSenha = false
+                                            mostrarDialogSucesso = true
+                                        },
+                                        onFailure = {
+                                            alterarSenha = false
+                                        }
+                                    )
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = roxo),
+                                shape = RoundedCornerShape(16),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp)
+                            ) {
+                                Text("Confirmar")
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Button(
+                                onClick = { alterarSenha = false },
+                                colors = ButtonDefaults.buttonColors(containerColor = branco),
+                                shape = RoundedCornerShape(16),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp)
+                            ) {
+                                Text("Cancelar", color = roxo)
+                            }
+                        }
+                    }
+                )
+            }
+
+            if (mostrarDialogSucesso) {
+                AlertDialog(
+                    onDismissRequest = { mostrarDialogSucesso = false },
+                    confirmButton = {},
+                    dismissButton = {},
+                    shape = RoundedCornerShape(16.dp),
+                    containerColor = Color(0xFF5847AA),
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Senha alterada com sucesso!",
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleLarge,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Ícone de sucesso",
+                                tint = Color.White,
+                                modifier = Modifier.size(200.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Button(
+                                onClick = { mostrarDialogSucesso = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White,
+                                    contentColor = Color(0xFF5847AA)
+                                ),
+                                modifier = Modifier.fillMaxWidth(0.5f)
+                            ) {
+                                Text("OK")
+                            }
+                        }
+                    }
+                )
+            }
+            if (mostrarConfirmacaoExclusao) {
+                AlertDialog(
+                    onDismissRequest = { mostrarConfirmacaoExclusao = false },
+                    confirmButton = {},
+                    dismissButton = {},
+                    shape = RoundedCornerShape(24.dp),
+                    containerColor = Color(0xFF5847AA),
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Tem certeza que quer excluir essa senha?",
+                                fontSize = 24.sp,
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Excluir",
+                                tint = Color.White,
+                                modifier = Modifier.size(200.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Button(
+                                onClick = {
+                                    removerFirestoreSenha(
+                                        conta.senha, conta.login,
+                                        onSuccess = {
+                                            senhas.remove(conta)
+                                            mostrarConfirmacaoExclusao = false
+                                        },
+                                        onFailure = {
+                                            mostrarConfirmacaoExclusao = false
+                                        }
+                                    )
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White,
+                                    contentColor = Color(0xFF5847AA)
+                                ),
+                                shape = RoundedCornerShape(16),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp)
+                            ) {
+                                Text("Confirmar")
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            OutlinedButton(
+                                onClick = { mostrarConfirmacaoExclusao = false },
+                                border = BorderStroke(1.dp, Color.White),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF5847AA),
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(16),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp)
+                            ) {
+                                Text("Cancelar")
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
+
 
 
     fun senhasConta(senhas: SnapshotStateList<ContaSenha>, categoria: String) {
@@ -701,7 +857,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     val login = document.getString("Login")
 
                     if (senha != null && login != null) {
-                        senhas.add(ContaSenha(login, senha))
+                        senhas.add(ContaSenha(login, descriptografar(senha)))
                     }
                 }
             }
@@ -744,10 +900,10 @@ class CategoriesScreenActivity : ComponentActivity() {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
         val uid = user!!.uid
-
+        val senhaCripto = criptografar(senha)
 
         db.collection("Usuario").document(uid).collection("senhas")
-            .whereEqualTo("Senha", senha)
+            .whereEqualTo("Senha", senhaCripto)
             .whereEqualTo("Login", login)
             .get()
             .addOnSuccessListener { querySnapshot ->
@@ -814,14 +970,16 @@ class CategoriesScreenActivity : ComponentActivity() {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser ?: return
         val uid = user.uid
+        val senhaAntigaCripto = criptografar(senhaAntiga)
+        val senhaNovaCripto = criptografar(novaSenha)
 
         db.collection("Usuario").document(uid).collection("senhas")
             .whereEqualTo("Login", login)
-            .whereEqualTo("Senha", senhaAntiga)
+            .whereEqualTo("Senha", senhaAntigaCripto)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 for (document in querySnapshot) {
-                    document.reference.update("Senha", novaSenha)
+                    document.reference.update("Senha", senhaNovaCripto)
                         .addOnSuccessListener {
                             Log.d("Firestore", "Senha atualizada com sucesso")
                             onSuccess()
