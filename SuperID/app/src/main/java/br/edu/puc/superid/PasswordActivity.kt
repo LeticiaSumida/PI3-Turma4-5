@@ -86,6 +86,7 @@ class PasswordActivity : ComponentActivity() {
         }
     }
 
+    // Função principal da tela de cadastro de senha
     @Composable
     fun telaCadastroSenha() {
 
@@ -143,6 +144,7 @@ class PasswordActivity : ComponentActivity() {
                     tint = branco,
                 )
             }
+
             DropdownMenu(
                 expanded = expanded2,
                 onDismissRequest = { expanded2 = false },
@@ -240,7 +242,7 @@ class PasswordActivity : ComponentActivity() {
             }
         }
 
-
+        // Conteúdo principal
         Column(
             modifier = Modifier
 
@@ -257,6 +259,7 @@ class PasswordActivity : ComponentActivity() {
                 fontWeight = FontWeight.Bold
             )
 
+            // Campos de entrada
             UnderlineTextField(
                 value = login,
                 onValueChange = { login = it },
@@ -288,6 +291,8 @@ class PasswordActivity : ComponentActivity() {
                 modifier = Modifier.padding(horizontal = 33.dp),
                 color = Color.Gray
             )
+
+            // Mensagem de erro
             if (erroCadastro) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -311,6 +316,7 @@ class PasswordActivity : ComponentActivity() {
                 }
             }
 
+            // Botão Cadastrar
             TextButton(
                 onClick = {
                     if (senha.isBlank() || categoriaSelecionada == "Categoria") {
@@ -400,7 +406,6 @@ class PasswordActivity : ComponentActivity() {
     }
 }
 
-
     @Composable
     fun DropDownCategoria(
         categorias: List<String>,
@@ -450,6 +455,7 @@ class PasswordActivity : ComponentActivity() {
         }
     }
 
+// Função para adicionar senha no Firestore
 fun addFirestoreSenha(login: String, senha: String, desc: String, categoria: String,onSuccess: () -> Unit) {
     val db = Firebase.firestore
     val user = Firebase.auth.currentUser
@@ -478,6 +484,7 @@ fun addFirestoreSenha(login: String, senha: String, desc: String, categoria: Str
         }
 }
 
+// Função para carregar categorias do Firestore
 fun carregarCategorias(categorias: SnapshotStateList<String>) {
     val db = Firebase.firestore
     val user = Firebase.auth.currentUser
@@ -549,6 +556,8 @@ fun carregarCategorias(categorias: SnapshotStateList<String>) {
         }
     }
 
+
+            // Função para gerar token aleatório
             fun gerarToken(tamanho: Int = 256): String {
                 val caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
                 return (1..tamanho)
