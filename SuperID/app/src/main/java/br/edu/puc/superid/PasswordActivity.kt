@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Refresh
@@ -57,6 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.edu.puc.superid.CriptoAES.criptografar
 import br.edu.puc.superid.ui.checarVerificado
 import br.edu.puc.superid.ui.theme.SuperIdTheme
 import br.edu.puc.superid.ui.theme.branco
@@ -99,6 +101,7 @@ class PasswordActivity : ComponentActivity() {
         var expanded2 by remember { mutableStateOf(false) }
         var home by remember { mutableStateOf(false) }
         var context = LocalContext.current
+        var erroCadastro by remember { mutableStateOf(false) }
 
 
 
@@ -285,11 +288,38 @@ class PasswordActivity : ComponentActivity() {
                 modifier = Modifier.padding(horizontal = 33.dp),
                 color = Color.Gray
             )
+            if (erroCadastro) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 30.dp, top = 4.dp, end = 30.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Aviso",
+                        tint = Color.Red,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = "Preencha a senha e selecione uma categoria antes de cadastrar.",
+                        color = Color.Red,
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .weight(1f),
+                        textAlign = TextAlign.Start
+                    )
+                }
+            }
 
             TextButton(
                 onClick = {
-                    addFirestoreSenha(login, senha, desc, categoriaSelecionada) {
-                        mostrarDialog = true
+                    if (senha.isBlank() || categoriaSelecionada == "Categoria") {
+                        erroCadastro = true
+                    } else {
+                        erroCadastro = false
+                        addFirestoreSenha(login, senha, desc, categoriaSelecionada) {
+                            mostrarDialog = true
+                        }
                     }
 
                     Log.d(TAG, "Categoria selecionada: $categoriaSelecionada")
@@ -420,50 +450,50 @@ class PasswordActivity : ComponentActivity() {
         }
     }
 
-    fun addFirestoreSenha(login: String, senha: String, desc: String, categoria: String,onSuccess: () -> Unit) {
-        val db = Firebase.firestore
-        val user = Firebase.auth.currentUser
-        val uid = user!!.uid
-        val deletavel = true
+fun addFirestoreSenha(login: String, senha: String, desc: String, categoria: String,onSuccess: () -> Unit) {
+    val db = Firebase.firestore
+    val user = Firebase.auth.currentUser
+    val uid = user!!.uid
+    val deletavel = true
+    val senhaCripto = criptografar(senha)
 
+    var senhaDb = hashMapOf(
+        "Login" to login,
+        "Senha" to senhaCripto,
+        "Descrição" to desc,
+        "Categoria" to categoria,
+        "deletavel" to deletavel
+    )
 
-        var senhaDb = hashMapOf(
-            "Login" to login,
-            "Senha" to senha,
-            "Descrição" to desc,
-            "Categoria" to categoria,
-            "deletavel" to deletavel
-        )
+    db.collection("Usuario").document(uid).collection("senhas").add(senhaDb)
+        .addOnSuccessListener { documentReference ->
+            Log.d(TAG, "Documento adicionado com ID: $uid")
+            onSuccess()
+        }
+        .addOnFailureListener { e ->
+            Log.w("Firestore", "Erro ao adicionar documento", e)
+        }
+}
 
-        db.collection("Usuario").document(uid).collection("senhas").add(senhaDb)
-            .addOnSuccessListener { documentReference ->
-                Log.d(TAG, "Documento adicionado com ID: $uid")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                Log.w("Firestore", "Erro ao adicionar documento", e)
-            }
-    }
+fun carregarCategorias(categorias: SnapshotStateList<String>) {
+    val db = Firebase.firestore
+    val user = Firebase.auth.currentUser
+    val uid = user!!.uid
 
-    fun carregarCategorias(categorias: SnapshotStateList<String>) {
-        val db = Firebase.firestore
-        val user = Firebase.auth.currentUser
-        val uid = user!!.uid
-
-        db.collection("Usuario").document(uid).collection("categorias")
-            .get()
-            .addOnSuccessListener { result ->
-                for (document in result) {
-                    val categoria = document.getString("nome")
-                    if (categoria != null) {
-                        categorias.add(categoria)
-                    }
+    db.collection("Usuario").document(uid).collection("categorias")
+        .get()
+        .addOnSuccessListener { result ->
+            for (document in result) {
+                val categoria = document.getString("nome")
+                if (categoria != null) {
+                    categorias.add(categoria)
                 }
             }
-            .addOnFailureListener { exception ->
-                Log.w("Categoria", "Erro ao buscar categorias", exception)
-            }
-    }
+        }
+        .addOnFailureListener { exception ->
+            Log.w("Categoria", "Erro ao buscar categorias", exception)
+        }
+}
 
 
     @Composable

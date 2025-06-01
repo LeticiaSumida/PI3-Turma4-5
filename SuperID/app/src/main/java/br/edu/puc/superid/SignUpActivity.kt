@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -134,15 +135,22 @@ class SignUpActivity : ComponentActivity() {
             )
 
             if (erroMensagem != null) {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 30.dp, top = 4.dp)){
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = "Aviso",
+                    tint = Color.Red,
+                    modifier = Modifier.size(20.dp)
+                )
                 Text(
                     text = erroMensagem!!,
                     color = Color.Red,
                     fontSize = 14.sp,
                     modifier = Modifier
                         .padding(8.dp)
-                        .align(Alignment.CenterHorizontally)
                 )
-            }
+            }}
 
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
