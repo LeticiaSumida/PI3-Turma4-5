@@ -118,6 +118,7 @@ import kotlinx.coroutines.delay
 
 private lateinit var auth: FirebaseAuth
 
+// Classe principal da tela de categorias
 class CategoriesScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -139,7 +140,7 @@ class CategoriesScreenActivity : ComponentActivity() {
         var login: String,
         var senha: String
     )
-
+    // Função composable que exibe a tela de categorias
     @Composable
     fun CategoriaNaTela(scrollState: ScrollState) {
         val categorias = remember { mutableStateListOf<String>() }
@@ -213,12 +214,15 @@ class CategoriesScreenActivity : ComponentActivity() {
                         tint = branco,
                     )
                 }
+
+                // Menu dropdown do perfil
                 DropdownMenu(
                     expanded = expanded2,
                     onDismissRequest = { expanded2 = false },
                     offset = DpOffset(x = (200).dp, y = 0.dp),
 
                 ) {
+                    // Voltar para Home
                     DropdownMenuItem(
 
                         text = { Text("Home", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
@@ -227,6 +231,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                             home = true
                         }
                     )
+                    // Logout
                     DropdownMenuItem(
                         leadingIcon = {
                             Icon(
@@ -244,6 +249,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                         }
                     )
 
+                    // Opção para reenviar email de verificação ou redefinir senha
                     if (verificado == false) {
                         DropdownMenuItem(
                             text = { Text("Reenviar verificação", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
@@ -296,6 +302,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                 finish()
             }
 
+            // Coluna principal com textos e categorias
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -331,6 +338,7 @@ class CategoriesScreenActivity : ComponentActivity() {
             val transition = updateTransition(targetState = expanded, label = "transition")
             val rotation by transition.animateFloat(label = "rotation") { if (it) 315f else 0f }
 
+            //Botão de nova categoria e nova senha
             FloatingActionButton(
                 onClick = { expanded = !expanded },
                 containerColor = roxo,
@@ -358,6 +366,8 @@ class CategoriesScreenActivity : ComponentActivity() {
                 Column(
                     modifier = Modifier
                 ) {
+
+                    // Botão Nova Categoria
                     ExtendedFloatingActionButton(
                         modifier = Modifier
                             .padding(start = 10.dp),
@@ -373,6 +383,7 @@ class CategoriesScreenActivity : ComponentActivity() {
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Botão Nova Senha
                     ExtendedFloatingActionButton(
                         modifier = Modifier
                             .padding(start = 30.dp),
@@ -390,6 +401,7 @@ class CategoriesScreenActivity : ComponentActivity() {
         }
     }
 
+    //Composable que cria um cartão de categoria
     @Composable
     fun expandableCard(categoria: String, onCategoriaRemovida: () -> Unit) {
         val context = LocalContext.current
@@ -450,6 +462,8 @@ class CategoriesScreenActivity : ComponentActivity() {
 
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+
+                    // Botão de expandir/recolher
                     IconButton(
                         modifier = Modifier
                             .rotate(rotationState),
@@ -465,6 +479,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                             tint = branco
                         )
                     }
+                    // Nome da categoria
                     Text(
                         modifier = Modifier,
                         fontSize = 22.sp,
@@ -472,6 +487,8 @@ class CategoriesScreenActivity : ComponentActivity() {
                         text = categoria,
                         overflow = TextOverflow.Ellipsis
                     )
+
+                    // Botão de deletar a categoria (exceto "Sites Web")
                     if (!categoria.equals("Sites Web", ignoreCase = true)) {
                         IconButton(
                             modifier = Modifier,
@@ -512,6 +529,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                                     .padding(16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+
                                 Text(
                                     text = "Deseja mesmo deletar essa categoria?",
                                     color = branco,
@@ -531,6 +549,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                                 Spacer(modifier = Modifier.height(20.dp))
 
                                 Column {
+                                    // Botão confirma a exclusão
                                     Button(
                                         onClick = {
                                             removerCategoriaFirestore(
@@ -549,7 +568,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                                     ) {
                                         Text("Sim", color = roxo, fontWeight = FontWeight.Bold)
                                     }
-
+                                    // Botão cancela a exclusão
                                     Button(
                                         onClick = {
                                             mostrarDialog = false
@@ -581,7 +600,7 @@ class CategoriesScreenActivity : ComponentActivity() {
         }
     }
 
-
+    //---------- parei por aqui
     @Composable
     fun mostrarSenhas(
         conta: ContaSenha,

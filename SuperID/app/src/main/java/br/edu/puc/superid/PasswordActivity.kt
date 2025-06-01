@@ -456,13 +456,16 @@ fun addFirestoreSenha(login: String, senha: String, desc: String, categoria: Str
     val uid = user!!.uid
     val deletavel = true
     val senhaCripto = criptografar(senha)
+    val token = gerarToken()
 
     var senhaDb = hashMapOf(
         "Login" to login,
         "Senha" to senhaCripto,
         "Descrição" to desc,
         "Categoria" to categoria,
-        "deletavel" to deletavel
+        "deletavel" to deletavel,
+        "accessToken" to token
+
     )
 
     db.collection("Usuario").document(uid).collection("senhas").add(senhaDb)
@@ -545,6 +548,13 @@ fun carregarCategorias(categorias: SnapshotStateList<String>) {
             )
         }
     }
+
+            fun gerarToken(tamanho: Int = 256): String {
+                val caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+                return (1..tamanho)
+                    .map { caracteres.random() }
+                    .joinToString("")
+}
 
 
 
