@@ -416,7 +416,7 @@ fun esqueciSenha(
                     )
 
                 }
-            } else {git
+            } else {
                 Log.w(TAG, "Email nao esta no banco") // Result = null
                 callback(false, "Email não encontrado no sistema.")
 

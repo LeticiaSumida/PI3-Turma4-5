@@ -74,7 +74,7 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
+        // Animação da transição entre as páginas
         AnimatedContent(
             targetState = paginaAtual,
             transitionSpec = {
@@ -89,6 +89,8 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
         ) { index ->
             val pagina = paginas[index]
             when (pagina) {
+
+                // Página de boas-vindas
                 "welcome" -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(
@@ -106,6 +108,7 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                     }
                 }
 
+                // Página de tutorial
                 "passo1" -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(
@@ -131,6 +134,7 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                     }
                 }
 
+                // Página explicando o funcionamento
                 "passo2" -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(
@@ -147,7 +151,7 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                         )
                     }
                 }
-
+                // Página de termos e condições
                 "termos" -> {
                     val scrollState = rememberScrollState()
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -217,7 +221,7 @@ fun WelcomeCarousel( onAceitar: () -> Unit ){
                     }
                 }
             }
-
+            // Botão Próximo ou Finalizar, dependendo da página atual
             Button(
                 onClick = {
                     if (paginaAtual < paginas.lastIndex) {
