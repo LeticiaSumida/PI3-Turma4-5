@@ -600,7 +600,7 @@ class CategoriesScreenActivity : ComponentActivity() {
         }
     }
 
-    //Composable responsável por exibir senhas.
+     //Composable responsável por exibir senhas.
     @Composable
     fun mostrarSenhas(
         conta: ContaSenha,
@@ -646,7 +646,7 @@ class CategoriesScreenActivity : ComponentActivity() {
                     Icon(Icons.Default.Edit, contentDescription = "Editar senha", tint = branco)
                 }
 
-                // Botão: remover a senha gi
+                // Botão: remover a senha
                 IconButton(onClick = { mostrarConfirmacaoExclusao = true }) {
                     Icon(Icons.Default.Delete, contentDescription = "Deletar senha", tint = branco)
                 }

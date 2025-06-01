@@ -71,6 +71,7 @@ import kotlinx.coroutines.delay
 private lateinit var auth: FirebaseAuth
 private val TAG = "CategoryActivityLOG"
 
+// Activity principal para cadastro de categoria
 class CategoryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,7 +82,7 @@ class CategoryActivity : ComponentActivity() {
             }
         }
     }
-
+    // Composable que representa a tela de cadastro de categoria
     @Composable
     fun TelaCadastroCategoria() {
         val context = LocalContext.current
@@ -97,7 +98,7 @@ class CategoryActivity : ComponentActivity() {
         var expanded2 by remember { mutableStateOf(false) }
         var home by remember { mutableStateOf(false) }
 
-
+        // Verifica se o usuário está com email verificado
         LaunchedEffect(Unit) {
             checarVerificado { resultado ->
                 verificado = resultado
@@ -136,12 +137,14 @@ class CategoryActivity : ComponentActivity() {
                     tint = branco,
                 )
             }
+            // Menu dropdown com opções
             DropdownMenu(
                 expanded = expanded2,
                 onDismissRequest = { expanded2 = false },
                 offset = DpOffset(x = (200).dp, y = 0.dp),
 
                 ) {
+                // Voltar para Home
                 DropdownMenuItem(
 
                     text = {
@@ -156,6 +159,7 @@ class CategoryActivity : ComponentActivity() {
                         home = true
                     }
                 )
+                // Logout
                 DropdownMenuItem(
                     leadingIcon = {
                         Icon(
@@ -178,7 +182,7 @@ class CategoryActivity : ComponentActivity() {
                         finish()
                     }
                 )
-
+                // Opção para reenviar verificação ou redefinir senha
                 if (verificado == false) {
                     DropdownMenuItem(
                         text = {
@@ -297,7 +301,7 @@ class CategoryActivity : ComponentActivity() {
                     )
                 }
             }
-
+            // Botão para cadastrar categoria
             Button(
                 onClick = {
                     erroCategoria = false
@@ -348,8 +352,7 @@ class CategoryActivity : ComponentActivity() {
                 Text("Cadastrar", color = branco)
             }
 
-            // ... resto do código de AlertDialog e botões permanece igual
-
+            // Dialog de sucesso
             if (mostrarDialog) {
                 AlertDialog(
                     onDismissRequest = { mostrarDialog = false },
@@ -401,6 +404,7 @@ class CategoryActivity : ComponentActivity() {
                 )
             }
 
+            // Dialog de erro interno
             if (erroInterno) {
                 AlertDialog(
                     onDismissRequest = { erroInterno = false },
@@ -418,7 +422,7 @@ class CategoryActivity : ComponentActivity() {
                     }
                 )
             }
-
+            // Botão para visualizar categorias
             Button(
                 onClick = {
                     val intent = Intent(context, CategoriesScreenActivity::class.java)
@@ -445,7 +449,7 @@ class CategoryActivity : ComponentActivity() {
     }
 
 
-
+    // Função que adiciona uma categoria no Firestore
     fun addFirestoreCategoria(categoria: String) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
@@ -468,6 +472,7 @@ class CategoryActivity : ComponentActivity() {
             }
     }
 
+    // Função que verifica se a categoria já existe
     fun checarCategoria(categoria: String, callback: (Boolean) -> Unit) {
         val db = Firebase.firestore
         val user = Firebase.auth.currentUser
