@@ -62,6 +62,8 @@ exports.performAuth = functions.https.onCall(async (data) => {
     if (!/^[a-z0-9\-\.]+\.[a-z]{2,}$/.test(siteUrl)) {
         throw new functions.https.HttpsError("invalid-argument", "siteUrl inválido. Deve ser um domínio válido.");
     }
+    const admin = require('firebase-admin');
+    admin.initializeApp();
     const partnerRef = db.collection("partners").doc(siteUrl);
     const partnerSnap = await partnerRef.get();
     if (!partnerSnap.exists) {

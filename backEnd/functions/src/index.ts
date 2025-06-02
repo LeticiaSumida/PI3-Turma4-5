@@ -1,185 +1,112 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import QRCode from "qrcode";
-import * as crypto from "crypto";
+import * as QRCode from "qrcode";
+import {onCall, HttpsError} from "firebase-functions/v2/https";
+import {v4 as uuidv4} from "uuid";
+
 
 admin.initializeApp();
-const db = admin.firestore();
 
-const TOKEN_EXPIRATION = 180; // segundos
-const MAX_ATTEMPTS = 3;
 
-/**
- * Gerar token aleatório seguro
- */
-function generateToken(length: number): string {
-  return crypto.randomBytes(length).toString("hex").slice(0, length);
-}
+export const performAuth = onCall(async (request) => {
+  try {
+    // 1. Validação de dados
+    if (!request.data.APIkey) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Parâmetro APIkey obrigatório"
+      );
+    }
 
-/**
- *  performAuth
- */
-export const performAuth = functions.https.onCall(async (data) => {
-  const { apiKey, siteUrl } = data;
+    if (request.data.APIkey !== "Teste do SuperID") {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "API key inválida"
+      );
+    }
 
-  if (!apiKey || !siteUrl) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "apiKey e siteUrl são obrigatórios."
-    );
-  }
+    // 2. Geração de dados
+    const loginToken = uuidv4();
+    const dataAtual = admin.firestore.Timestamp.now();
 
-  if (!/^[a-z0-9\-\.]+\.[a-z]{2,}$/.test(siteUrl)) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "siteUrl inválido. Deve ser um domínio válido."
-    );
-  }
+    // 3. Geração do QR Code (assíncrona)
+    const qrcode = await QRCode.toDataURL(loginToken, {type: "image/png"});
 
-  const partnerRef = db.collection("partners").doc(siteUrl);
-  const partnerSnap = await partnerRef.get();
-
-  if (!partnerSnap.exists) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Parceiro não cadastrado."
-    );
-  }
-
-  const partnerData = partnerSnap.data();
-  if (partnerData?.apiKey !== apiKey) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "API Key inválida."
-    );
-  }
-
-  const loginToken = generateToken(256);
-  const now = admin.firestore.Timestamp.now();
-
-  await db.collection("login").doc(loginToken).set({
-    apiKey,
-    siteUrl,
-    loginToken,
-    createdAt: now,
-    attempts: 0,
-  });
-
-  const qrCodeDataURL = await QRCode.toDataURL(loginToken);
-
-  return {
-    qrCodeBase64: qrCodeDataURL,
-    loginToken,
-  };
-});
-
-/**
- *  confirmLogin
- */
-export const confirmLogin = functions.https.onCall(async (data, context) => {
-  const { loginToken } = data;
-  const uid = context.auth?.uid;
-
-  if (!uid) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "Usuário não autenticado."
-    );
-  }
-
-  if (!loginToken) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "loginToken é obrigatório."
-    );
-  }
-
-  const loginRef = db.collection("login").doc(loginToken);
-  const loginSnap = await loginRef.get();
-
-  if (!loginSnap.exists) {
-    throw new functions.https.HttpsError(
-      "not-found",
-      "Token inválido ou expirado."
-    );
-  }
-
-  const loginData = loginSnap.data();
-  const now = admin.firestore.Timestamp.now();
-  const diffSeconds = now.seconds - loginData!.createdAt.seconds;
-
-  if (diffSeconds > TOKEN_EXPIRATION) {
-    await loginRef.delete();
-    throw new functions.https.HttpsError(
-      "deadline-exceeded",
-      "Token expirado."
-    );
-  }
-
-  await loginRef.update({
-    user: uid,
-    confirmedAt: now,
-  });
-
-  return { message: "Login confirmado com sucesso." };
-});
-
-/**
- *  getLoginStatus
- */
-export const getLoginStatus = functions.https.onCall(async (data) => {
-  const { loginToken } = data;
-
-  if (!loginToken) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "loginToken é obrigatório."
-    );
-  }
-
-  const loginRef = db.collection("login").doc(loginToken);
-  const loginSnap = await loginRef.get();
-
-  if (!loginSnap.exists) {
-    throw new functions.https.HttpsError(
-      "not-found",
-      "Token inválido ou expirado."
-    );
-  }
-
-  const loginData = loginSnap.data();
-  const now = admin.firestore.Timestamp.now();
-  const diffSeconds = now.seconds - loginData!.createdAt.seconds;
-
-  if (diffSeconds > TOKEN_EXPIRATION) {
-    await loginRef.delete();
-    throw new functions.https.HttpsError(
-      "deadline-exceeded",
-      "Token expirado."
-    );
-  }
-
-  const attempts = (loginData?.attempts || 0) + 1;
-
-  if (attempts >= MAX_ATTEMPTS) {
-    await loginRef.delete();
-    throw new functions.https.HttpsError(
-      "resource-exhausted",
-      "Número máximo de tentativas excedido."
-    );
-  }
-
-  await loginRef.update({ attempts });
-
-  if (loginData?.user) {
-    await loginRef.delete();
-    return {
-      status: "authenticated",
-      user: loginData.user,
-    };
-  } else {
-    return {
+    // 4. Salvamento no Firestore
+    await admin.firestore().collection("logins").doc(loginToken).set({
+      API: request.data.APIkey,
+      DataEhorario: dataAtual,
+      logintoken: loginToken,
+      tentativas: 3,
       status: "pending",
+      UserID: "",
+    });
+
+    // 5. Retorno formatado
+    return {
+      qrcode: qrcode,
+      token: loginToken,
     };
+  } catch (error) {
+    // 6. Tratamento de erros
+    console.error("Erro na função performAuth:", error);
+    throw new functions.https.HttpsError(
+      "internal",
+      `Falha ao processar requisição ${error}`,
+    );
   }
 });
+
+
+export const getLoginStatus = onCall(async (request) =>{
+  if (!request.data.loginToken) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Parâmetro loginToken Obrigatorio"
+    );
+  }
+  const loginToken = request.data.loginToken;
+  const tokenDoc =
+  await admin.firestore().collection("logins").doc(loginToken).get();
+
+  if (!tokenDoc.exists) {
+    throw new HttpsError(
+      "permission-denied",
+      "Login Token invalida"
+    );
+  }
+  const data = tokenDoc.data();
+
+  if (!data) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Login token com falta de data"
+    );
+  }
+
+  const now = admin.firestore.Timestamp.now();
+
+  const secs = now.seconds - data.DataEhorario.seconds;
+  if (secs>60 || data.tentativas<=0) {
+    await tokenDoc.ref.delete();
+    throw new HttpsError(
+      "aborted",
+      "Acabou o tempo ou o numero de tentativas"
+    );
+  }
+
+  if (data.UserId) {
+    await tokenDoc.ref.update({
+      status: "Completed",
+    });
+    const user =
+    await admin.auth().getUser(data.UserId);
+    return {
+      uid: user.uid,
+      email: user.email,
+    };
+  }
+  return "";
+});
+
+

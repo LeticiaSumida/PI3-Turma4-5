@@ -8,6 +8,7 @@
     <title>Mercado Preso</title>
     <link rel="stylesheet" href="main.css" />
     <script src="main.js" defer="script"></script>
+    <script src="app.js"></script>
     <script src="https://davidshimjs.github.io/qrcodejs/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -118,8 +119,9 @@
         <div class="modal-content">
             <h3>Escaneie com SuperID</h3>
     
-            <div id="qrcode">
-            </div>
+           <div id="qrcode">
+          <img id="qrImg" alt="qrcode vai mostrar aqui">
+        </div>
     
             <p id="statusTexto">Aguardando autenticação...</p>
     
