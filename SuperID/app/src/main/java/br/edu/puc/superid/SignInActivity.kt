@@ -69,6 +69,7 @@ class SignInActivity : ComponentActivity() {
         }
     }
 
+    // Função Composable que define a tela de login
     @Composable
     fun TelaLogin() {
         var email by remember { mutableStateOf("") }
@@ -87,6 +88,7 @@ class SignInActivity : ComponentActivity() {
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Logo/Cadeado
             Image(
                 painter = painterResource(id = R.drawable.cadeado3),
                 contentDescription = null,
@@ -113,6 +115,7 @@ class SignInActivity : ComponentActivity() {
                 label = "Senha Mestre"
             )
 
+            // Mensagem de erro
             if (erroMensagem != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -134,6 +137,7 @@ class SignInActivity : ComponentActivity() {
                 }
             }
 
+            // Indicador de carregamento
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
             } else {
@@ -226,7 +230,7 @@ class SignInActivity : ComponentActivity() {
                 }
             }
 
-            // Dialog de sucesso
+            // Dialog de sucesso no login
             if (showSuccessDialog) {
                 androidx.compose.material3.AlertDialog(
                     onDismissRequest = { showSuccessDialog = false },
@@ -284,7 +288,7 @@ class SignInActivity : ComponentActivity() {
         }
     }
 
-
+    // Função para checar se o email foi verificado
     fun checarVerificacao(callback: (Boolean, String?) -> Unit) {
         val user = FirebaseAuth.getInstance().currentUser
         val db = Firebase.firestore
@@ -316,7 +320,7 @@ class SignInActivity : ComponentActivity() {
         }
     }
 
-
+    // Validação básica de email
     fun isValidEmail(email: String?): Boolean {
         if (email == null) return false
 

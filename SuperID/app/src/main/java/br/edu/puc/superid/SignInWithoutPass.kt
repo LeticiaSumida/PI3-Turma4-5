@@ -40,7 +40,7 @@ class SignInWithoutPass : ComponentActivity() {
             }
         }
     }
-
+    // Função para iniciar o scanner de código de barras
     private fun startBarcodeScanner() {
         val options = GmsBarcodeScannerOptions.Builder()
             .setBarcodeFormats(
@@ -49,9 +49,12 @@ class SignInWithoutPass : ComponentActivity() {
             .build()
         val scanner = GmsBarcodeScanning.getClient(this, options)
 
+        // Inicia o escaneamento
         scanner.startScan()
             .addOnSuccessListener { barcode ->
                 val loginToken = barcode.rawValue
+
+                // Se o token do QR Code não estiver vazio
                 if (!loginToken.isNullOrEmpty()) {
                     updateLoginDocument(loginToken)
                     showSuccessPopup(loginToken)
@@ -68,11 +71,12 @@ class SignInWithoutPass : ComponentActivity() {
             }
     }
 
-
+    // Função para atualizar o documento no Firestore com o login via QR Code
     private fun updateLoginDocument(loginToken: String) {
         val db = Firebase.firestore
         val currentUser = Firebase.auth.currentUser
 
+        // Se o usuário não estiver autenticado
         if (currentUser == null) {
             showFailurePopup("Usuário não autenticado no aplicativo.")
             return
@@ -97,6 +101,7 @@ class SignInWithoutPass : ComponentActivity() {
             }
     }
 
+    // Exibe um popup de sucesso
     private fun showSuccessPopup(message: String) {
         setContent {
             SuperIdTheme {
@@ -107,7 +112,7 @@ class SignInWithoutPass : ComponentActivity() {
             }
         }
     }
-
+    // Exibe um popup de erro
     private fun showFailurePopup(message: String) {
         setContent {
             SuperIdTheme {
@@ -122,7 +127,7 @@ class SignInWithoutPass : ComponentActivity() {
         }
     }
 }
-
+// Composable popup
 @Composable
 fun PopUpScreen(
     message: String,

@@ -68,6 +68,8 @@ class SignUpActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         auth = Firebase.auth
+
+
         val prefs = getSharedPreferences("tutorial_prefs", MODE_PRIVATE)
         val tutorialVisto = prefs.getBoolean("tutorial_visto", false)
 
@@ -157,6 +159,7 @@ class SignUpActivity : ComponentActivity() {
                 }
             }
 
+            // Exibe o indicador de carregamento ou o botão de cadastro
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
             } else {
@@ -281,7 +284,7 @@ class SignUpActivity : ComponentActivity() {
         }
     }
 
-
+    // Função para validar formato de e-mail
     fun isValidEmail(email: String?): Boolean {
         if (email == null) return false
 
@@ -291,6 +294,7 @@ class SignUpActivity : ComponentActivity() {
         return pattern.matches(email)
     }
 
+    // Função para verificar se o e-mail já está cadastrado no Firestore
     fun checarEmail(email: String, callback: (Boolean) -> Unit) {
         val db = Firebase.firestore
 
@@ -305,6 +309,7 @@ class SignUpActivity : ComponentActivity() {
             }
     }
 
+    // Função para adicionar dados do usuário ao Firestore após autenticação
     fun addFirestore(nome: String, email: String, uid: String) {
         val db = Firebase.firestore
         val usuario = FirebaseAuth.getInstance().currentUser
@@ -343,6 +348,7 @@ class SignUpActivity : ComponentActivity() {
             }
     }
 
+    // Função para criar usuário na autenticação do Firebase
     fun addAuth(email: String, senha: String, callback: (Boolean) -> Unit) {
         Firebase.auth.createUserWithEmailAndPassword(email, senha)
             .addOnCompleteListener(this) { task ->
@@ -370,6 +376,7 @@ class SignUpActivity : ComponentActivity() {
             }
     }
 
+    // Função para criptografar senha utilizando BCrypt
     fun hashPassword(password: String): String {
         return BCrypt.hashpw(password, BCrypt.gensalt())
 
