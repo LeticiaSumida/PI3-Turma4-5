@@ -31,7 +31,7 @@ Um sistema web com APIs em Firebase Functions, que permite a sites parceiros ofe
 ## Testar o Login Sem Senha
 Você pode testar a leitura de QR Code com o site de testes:
 
-ADICONAR LINK AQUI
+https://superid-d1bf3.web.app/
 
 1. Clique em "Login com Super ID".
 2. Um QR Code será gerado.
