@@ -264,6 +264,8 @@ class SignUpActivity : ComponentActivity() {
                         TextButton(
                             onClick = {
                                 showSuccessDialog = false
+                                val intent = Intent(this@SignUpActivity, SignInActivity::class.java)
+                                startActivity(intent)
                                 finish()
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = branco),

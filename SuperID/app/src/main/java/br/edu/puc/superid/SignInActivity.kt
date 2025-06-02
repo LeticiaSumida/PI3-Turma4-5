@@ -293,8 +293,8 @@ class SignInActivity : ComponentActivity() {
         val user = FirebaseAuth.getInstance().currentUser
         val db = Firebase.firestore
 
-        if (user != null) {
-            val uid = user.uid
+
+            val uid = user!!.uid
             user.reload().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     var isverified = user.isEmailVerified
@@ -315,9 +315,7 @@ class SignInActivity : ComponentActivity() {
                     callback(false, task.exception?.message)
                 }
             }
-        } else {
-            callback(false, "Usuário não autenticado")
-        }
+
     }
 
     // Validação básica de email
