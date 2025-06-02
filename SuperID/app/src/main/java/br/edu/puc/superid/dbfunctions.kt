@@ -1,3 +1,5 @@
+package br.edu.puc.superid
+
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
