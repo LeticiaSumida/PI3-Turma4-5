@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mercado Preso</title>
+    <link rel="stylesheet" href="main.css" />
+    <!-- Firebase compat antes do seu script -->
+    <script src="https://davidshimjs.github.io/qrcodejs/qrcode.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+
+    <!-- Depois de tudo isso, carregue seu script -->
+    <script src="main.js"></script>
+
+</head>
+<body>
+    <div class="login-container">
+        <h2>Entrar</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="E-mail" />
+            <input type="password" id="password" placeholder="Senha" />
+            <button type="submit" class="buttonLogin">Entrar</button>
+
+            <div class="partner-login">
+                <button type="button" class="partner-button" onclick="gerarQRCode()">
+                    <img src="imgs/superID.png" alt="SuperID" />
+                    Entrar com SuperID
+                </button>
+                <a href="#" class="partner-button">
+                    <img src="imgs/google.png" alt="Google" />
+                    Entrar com Google
+                </a>
+            </div>
+            <div class="extra-options">
+                <a href="#">Esqueceu a senha?</a><br />
+                <a href="#">Criar uma conta</a>
+            </div>
+        </form>
+    </div>
+
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <h3>Escaneie com SuperID</h3>
+
+            <div id="qrcode">
+            </div>
+
+            <p id="statusTexto">Aguardando autenticação...</p>
+
+            <div id="contador" style="font-size: 18px; margin-top: 10px;"></div>
+
+            <button onclick="cancelarQRCode()">Cancelar</button>
+        </div>
+    </div>
+</body>

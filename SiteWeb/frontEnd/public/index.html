@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mercado Preso</title>
+    <link rel="stylesheet" href="main.css" />
+
+    <script src="https://davidshimjs.github.io/qrcodejs/qrcode.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-functions.js"></script>
+    <script src="main.js"></script>
+
+</head>
+<body>
+    <div id="tela1">
+        <header>
+            <h1>Mercado Preso</h1>
+            <a href="login.html" class="buttonEntrar">Login</a>
+        </header>
+        <main>
+            <h2 style="color:white;">Produtos em Destaque</h2>
+            <div class="product-list">
+                <div class="product-card">
+                    <img src="imgs/fone_de_ouvido.png" alt="Produto 1" />
+                    <h3>Fone de Ouvido</h3>
+                    <p>R$ 199,90</p>
+                    <button class="buttonLogin">Comprar</button>
+                </div>
+                <div class="product-card">
+                    <img src="imgs/smart_watch.jpeg" alt="Produto 2" />
+                    <h3>Relógio Smart</h3>
+                    <p>R$ 299,90</p>
+                    <button class="buttonLogin">Comprar</button>
+                </div>
+                <div class="product-card">
+                    <img src="imgs/teclado_gamer.jpeg" alt="Produto 3" />
+                    <h3>Teclado Gamer</h3>
+                    <p>R$ 249,90</p>
+                    <button class="buttonLogin">Comprar</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
